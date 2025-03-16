@@ -1,0 +1,999 @@
+#include <windows.h>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+// #include <chrono>
+#include <windowsx.h>
+#include <string>
+#include <algorithm>
+#include <map>
+#include <cstdio>
+
+#define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0) // For keyboard detection
+
+// Game constants
+const int GRID_SIZE = 32;           // Size of each grid cell (32 pixels)
+const int MAP_WIDTH = 70;           // Map width (in grid cells)
+const int MAP_HEIGHT = 70;          // Map height (in grid cells)
+const int WINDOW_WIDTH = 800;       // Window width
+const int WINDOW_HEIGHT = 800;      // Window height
+const float PLAYER_SPEED = 0.2f;    // Player movement speed
+const float ATTACK_INTERVAL = 0.2f; // Attack interval 0.2 seconds
+const int MAX_ATTACK_DISTANCE = 3;  // Maximum attack distance is 3 grid cells
+const int TREE_HEALTH = 10;
+const int WORKBENCH_HEALTH = 7;
+const int ATTACK_DAMAGE = 2, attackPower = 1, stickAttackPower = 5;
+const int CARD_WORD_Y1 = WINDOW_HEIGHT - 80;
+const int CARD_WORD_Y2 = WINDOW_HEIGHT - 40;
+const int CARD_WORD_X1 = 0;
+const int CARD_WORD_X2 = WINDOW_WIDTH - 10;
+const int OBSTACLE_HEALTH = 7;
+// Game object types
+enum GameObject
+{
+    GROUND,
+    OBSTACLE,
+    TREE,
+    WORKBENCH,
+    PLAYER
+};
+
+// Item types
+enum GameDrops
+{
+    EMPTY,
+    WOOD,
+    STONE,
+    LEAF,
+    WORK,
+    STICK
+};
+
+// Initialize game items
+GameDrops LeftHand = EMPTY;
+GameDrops RightHand = EMPTY;
+GameDrops Bar[12] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};
+GameDrops onPlayer[5] = {EMPTY, EMPTY, EMPTY};
+
+std::string DropsName[] = {"Empty", "Wood", "Stone", "Leaf", "Bench", "Stick"};
+std::string ModelName[] = {"L", "R", "F1", "F2", "F3", "1", "2", "3", "4", "5"};
+std::vector<std::string> bag;
+
+// Game entity structure
+struct GameEntity
+{
+    GameObject type;
+    int health;
+};
+struct mobs
+{
+    double x, y;
+    double speed;
+    int damage, blood;
+    std::string name;
+};
+std::vector<mobs> allmobs;
+// Map state
+std::vector<std::vector<GameEntity>> gameMap(MAP_HEIGHT, std::vector<GameEntity>(MAP_WIDTH, {GROUND, 0}));
+
+float playerX = MAP_WIDTH / 2.0f;  // Player X position (in grid cells)
+float playerY = MAP_HEIGHT / 2.0f; // Player Y position (in grid cells)
+float playerVelocityX = 0.0f;      // Player horizontal velocity
+float playerVelocityY = 0.0f;      // Player vertical velocity
+GameDrops *SelectedDrop;
+bool HaveSelected = false;
+int lastAttackTime;
+
+// Name mapping
+std::map<GameObject, std::string> mp;
+
+// Add global pause state variable
+bool isPaused = false;
+
+// Add global variables for mouse hover functionality
+POINT lastMousePos = {-1, -1}; // Last mouse position
+int lastMouseGridX = -1;       // Last grid X coordinate under mouse
+int lastMouseGridY = -1;       // Last grid Y coordinate under mouse
+DWORD hoverStartTime = 0;      // Time when mouse started hovering
+bool showHoverInfo = false;    // Whether to show hover information
+
+// Add global variables for backpack window
+HWND backpackWindow = NULL;
+bool isBackpackOpen = false;
+
+// Add global variable to track last backpack toggle time
+DWORD lastBackpackToggleTime = 0;
+
+// Forward declaration of backpack window procedure
+LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+// Function to create and show backpack window
+void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance)
+{
+    // Add a time-based cooldown to prevent rapid toggling
+    DWORD currentTime = GetTickCount();
+    if (currentTime - lastBackpackToggleTime < 300) // 300ms cooldown
+    {
+        return; // Ignore toggle requests that come too quickly
+    }
+
+    lastBackpackToggleTime = currentTime;
+
+    if (isBackpackOpen && backpackWindow != NULL)
+    {
+        // Close the window if it's already open
+        DestroyWindow(backpackWindow);
+        backpackWindow = NULL;
+        isBackpackOpen = false;
+        return;
+    }
+
+    // Create backpack window if it doesn't exist
+    if (backpackWindow == NULL)
+    {
+        // Register window class for backpack
+        WNDCLASSA backpackClass = {};
+        backpackClass.lpfnWndProc = BackpackWindowProc;
+        backpackClass.hInstance = hInstance;
+        backpackClass.lpszClassName = "BackpackWindow";
+        RegisterClassA(&backpackClass);
+
+        // Get parent window position
+        RECT parentRect;
+        GetWindowRect(parentHwnd, &parentRect);
+
+        // Create the backpack window
+        backpackWindow = CreateWindowExA(
+            WS_EX_TOPMOST | WS_EX_TOOLWINDOW, // Make it stay on top without taskbar icon
+            "BackpackWindow",
+            "Backpack",
+            WS_POPUP | WS_VISIBLE, // Popup style without borders
+            parentRect.left + 50,  // Position it near the parent window
+            parentRect.top + 50,
+            300,        // Width
+            400,        // Height
+            parentHwnd, // Parent window
+            NULL,
+            hInstance,
+            NULL);
+
+        if (backpackWindow != NULL)
+        {
+            ShowWindow(backpackWindow, SW_SHOW);
+            isBackpackOpen = true;
+        }
+    }
+}
+
+// Count items in the bag
+std::map<std::string, int> CountBagItems()
+{
+    std::map<std::string, int> itemCounts;
+
+    // Count items from the bag vector
+    for (const auto &item : bag)
+    {
+        itemCounts[item]++;
+    }
+
+    // Count items from hands and slots
+    if (LeftHand != EMPTY)
+        itemCounts[DropsName[LeftHand]]++;
+    if (RightHand != EMPTY)
+        itemCounts[DropsName[RightHand]]++;
+
+    for (int i = 0; i < 3; i++)
+    {
+        if (onPlayer[i] != EMPTY)
+            itemCounts[DropsName[onPlayer[i]]]++;
+    }
+
+    for (int i = 0; i < 5; i++)
+    {
+        if (Bar[i] != EMPTY)
+            itemCounts[DropsName[Bar[i]]]++;
+    }
+
+    return itemCounts;
+}
+
+// Backpack window procedure
+LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+
+        // Set up colors and fonts
+        SetBkColor(hdc, RGB(50, 50, 50));      // Dark background
+        SetTextColor(hdc, RGB(255, 255, 255)); // White text
+
+        HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                                 DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+                                 CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, (LPCSTR) "Arial");
+        SelectObject(hdc, hFont);
+
+        // Draw background
+        RECT clientRect;
+        GetClientRect(hwnd, &clientRect);
+        HBRUSH bgBrush = CreateSolidBrush(RGB(50, 50, 50));
+        FillRect(hdc, &clientRect, bgBrush);
+        DeleteObject(bgBrush);
+
+        // Draw title
+        const char *title = "BACKPACK";
+        TextOutA(hdc, 110, 10, title, strlen(title));
+
+        // Draw separator line
+        HPEN linePen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
+        SelectObject(hdc, linePen);
+        MoveToEx(hdc, 10, 35, NULL);
+        LineTo(hdc, 290, 35);
+        DeleteObject(linePen);
+
+        // Get item counts
+        std::map<std::string, int> itemCounts = CountBagItems();
+
+        // Draw table headers
+        TextOutA(hdc, 30, 45, "ITEM", 4);
+        TextOutA(hdc, 200, 45, "COUNT", 5);
+
+        // Draw another separator
+        linePen = CreatePen(PS_SOLID, 1, RGB(150, 150, 150));
+        SelectObject(hdc, linePen);
+        MoveToEx(hdc, 10, 65, NULL);
+        LineTo(hdc, 290, 65);
+        DeleteObject(linePen);
+
+        // Draw items and counts
+        int y = 80;
+        for (const auto &item : itemCounts)
+        {
+            if (item.first != "Empty") // Don't show empty items
+            {
+                TextOutA(hdc, 30, y, item.first.c_str(), item.first.length());
+
+                // Convert count to string
+                char countStr[10];
+                sprintf(countStr, "%d", item.second);
+                TextOutA(hdc, 200, y, countStr, strlen(countStr));
+
+                y += 25; // Move down for next item
+            }
+        }
+
+        // Draw close instruction
+        const char *closeText = "Press 'B' to close";
+        TextOutA(hdc, 90, 350, closeText, strlen(closeText));
+
+        DeleteObject(hFont);
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
+
+    case WM_KEYDOWN:
+        if (wParam == 'B')
+        {
+            // Don't close immediately on B press - let the main loop handle it
+            // This prevents the window from closing and immediately reopening
+            return 0;
+        }
+        return 0;
+
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        backpackWindow = NULL;
+        isBackpackOpen = false;
+        return 0;
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+// Check if path between start and target is clear of obstacles
+bool isPathClear(float startX, float startY, float endX, float endY)
+{
+    int steps = std::max(std::abs(endX - startX), std::abs(endY - startY));
+    for (int i = 0; i < steps; ++i)
+    {
+        float x = startX + (endX - startX) * (i / (float)steps);
+        float y = startY + (endY - startY) * (i / (float)steps);
+        if (gameMap[(int)y][(int)x].type == OBSTACLE)
+        {
+            return false; // If path contains obstacle, return false
+        }
+    }
+    return true;
+}
+
+// Generate random obstacles, trees and workbenches
+void generateRandomMap()
+{
+    srand(static_cast<unsigned>(time(0)));
+    // Generate random obstacles
+    for (int i = 0; i < 300; ++i)
+    {
+        int x = rand() % MAP_WIDTH;
+        int y = rand() % MAP_HEIGHT;
+        gameMap[y][x] = {OBSTACLE, OBSTACLE_HEALTH};
+    }
+    // Generate random trees
+    for (int i = 0; i < 100; ++i)
+    {
+        int x = rand() % MAP_WIDTH;
+        int y = rand() % MAP_HEIGHT;
+        gameMap[y][x] = {TREE, TREE_HEALTH};
+    }
+    // Generate random workbenches
+    for (int i = 0; i < 50; ++i)
+    {
+        int x = rand() % MAP_WIDTH;
+        int y = rand() % MAP_HEIGHT;
+        gameMap[y][x] = {WORKBENCH, WORKBENCH_HEALTH};
+    }
+    gameMap[playerY][playerX] = {GROUND, 0};
+}
+
+// Draw the game
+void drawGame(HDC hdc)
+{
+    // Draw the map
+    for (int y = 0; y < MAP_HEIGHT; ++y)
+    { //-10~9
+        for (int x = 0; x < MAP_WIDTH; ++x)
+        { //-7~8
+            if (gameMap[y][x].health <= 0 && gameMap[y][x].type != GROUND)
+                gameMap[y][x].type = GROUND;
+            GameEntity entity = gameMap[y][x];
+            HBRUSH brush;
+            if (entity.type == GROUND)
+            {
+                brush = CreateSolidBrush(RGB(200, 200, 200)); // Gray ground
+            }
+            else if (entity.type == OBSTACLE)
+            {
+                brush = CreateSolidBrush(RGB(100, 100, 100)); // Dark gray obstacles
+            }
+            else if (entity.type == TREE)
+            {
+                brush = CreateSolidBrush(RGB(0, 255, 0)); // Green trees
+            }
+            else if (entity.type == WORKBENCH)
+            {
+                brush = CreateSolidBrush(RGB(139, 69, 19)); // Brown workbenches
+            }
+            int PaintX1 = x * GRID_SIZE - playerX * GRID_SIZE + 400,
+                PrintY1 = y * GRID_SIZE - playerY * GRID_SIZE + 400,
+                PrintX2 = (x + 1) * GRID_SIZE - playerX * GRID_SIZE + 400,
+                PrintY2 = (y + 1) * GRID_SIZE - playerY * GRID_SIZE + 400;
+            SelectObject(hdc, brush);
+            Rectangle(hdc, PaintX1, PrintY1, PrintX2, PrintY2);
+            DeleteObject(brush);
+        }
+    }
+
+    // Draw the player
+    // int playerPosX = static_cast<int>(round(playerX * GRID_SIZE));  // Player screen X position
+    // int playerPosY = static_cast<int>(round(playerY * GRID_SIZE));  // Player screen Y position
+    int playerPosX = 400, playerPosY = 400;
+    int playerSize = GRID_SIZE;                            // Player size is one grid cell
+    HBRUSH playerBrush = CreateSolidBrush(RGB(255, 0, 0)); // Red player
+    SelectObject(hdc, playerBrush);
+    Rectangle(hdc, playerPosX, playerPosY, playerPosX + playerSize, playerPosY + playerSize); // Draw as square
+    DeleteObject(playerBrush);
+
+    // Draw mobs
+    for (int i = 0; i < allmobs.size(); i++)
+    {
+        HBRUSH brush;
+        brush = CreateSolidBrush(RGB(100, 100, 255)); // Mobs are blue
+        int PaintX1 = allmobs[i].x * GRID_SIZE - playerX * GRID_SIZE + 400,
+            PrintY1 = allmobs[i].y * GRID_SIZE - playerY * GRID_SIZE + 400,
+            PrintX2 = allmobs[i].x * GRID_SIZE + GRID_SIZE - playerX * GRID_SIZE + 400,
+            PrintY2 = allmobs[i].y * GRID_SIZE + GRID_SIZE - playerY * GRID_SIZE + 400;
+        SelectObject(hdc, brush);
+        Rectangle(hdc, PaintX1, PrintY1, PrintX2, PrintY2);
+        DeleteObject(brush);
+    }
+
+    // Display card
+    SetTextColor(hdc, RGB(0, 0, 0)); // Black text
+    SetBkMode(hdc, TRANSPARENT);     // Transparent background
+
+    // Construct item names string
+    std::vector<std::string> itemNames = {
+        DropsName[LeftHand], DropsName[RightHand],
+        DropsName[onPlayer[0]], DropsName[onPlayer[1]], DropsName[onPlayer[2]],
+        DropsName[Bar[0]], DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]]};
+    // Prepare strings with consistent 4-space separation
+    std::string itemNamesStr, modelStr;
+    for (size_t i = 0; i < itemNames.size(); ++i)
+    {
+        for (int j = 1; j <= itemNames[i].size() / 2; ++j)
+        {
+            modelStr += " ";
+        }
+        modelStr += ModelName[i];
+
+        itemNamesStr += itemNames[i];
+        if (i < itemNames.size() - 1)
+        {
+            itemNamesStr += "    "; // 4 spaces between items
+            for (int j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
+            {
+                modelStr += " ";
+            }
+        }
+    }
+    // Construct model labels to match item names
+    // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
+    printf("%d %d\n", itemNamesStr.size(), modelStr.size());
+    const char *text = itemNamesStr.c_str();
+    const char *model = modelStr.c_str();
+
+    // Calculate text widths to center both
+    SIZE textSize, modelTextSize;
+    GetTextExtentPoint32A(hdc, text, strlen(text), &textSize);
+    GetTextExtentPoint32A(hdc, model, strlen(model), &modelTextSize);
+
+    // Position text at bottom center
+    int centerX = WINDOW_WIDTH / 2;
+    TextOutA(hdc, centerX - textSize.cx / 2, WINDOW_HEIGHT - 80, text, strlen(text));
+    TextOutA(hdc, centerX - modelTextSize.cx / 2, WINDOW_HEIGHT - 60, model, strlen(model));
+
+    // Display pause text if game is paused
+    if (isPaused)
+    {
+        SetTextColor(hdc, RGB(255, 0, 0)); // Red text for pause
+        const char *pauseText = "GAME PAUSED";
+        TextOutA(hdc, WINDOW_WIDTH / 2 - 50, WINDOW_HEIGHT / 2, pauseText, strlen(pauseText));
+    }
+
+    // Display hover information if active
+    if (showHoverInfo)
+    {
+        // Create tooltip-style bubble
+        char hoverText[50];
+        int isGround = (gameMap[lastMouseGridY][lastMouseGridX].type == GROUND) ? 1 : 0;
+        sprintf(hoverText, "X:%d, Y:%d, Ground:%d", lastMouseGridX, lastMouseGridY, isGround);
+
+        // Calculate text dimensions
+        SIZE textSize;
+        GetTextExtentPoint32A(hdc, hoverText, strlen(hoverText), &textSize);
+
+        // Calculate tooltip position (offset from cursor)
+        int tooltipX = lastMousePos.x + 15;
+        int tooltipY = lastMousePos.y - textSize.cy - 10;
+
+        // Ensure tooltip stays within window bounds
+        if (tooltipX + textSize.cx + 10 > WINDOW_WIDTH)
+            tooltipX = WINDOW_WIDTH - textSize.cx - 10;
+        if (tooltipY < 5)
+            tooltipY = lastMousePos.y + 15;
+
+        // Draw tooltip background
+        HBRUSH tooltipBrush = CreateSolidBrush(RGB(255, 255, 225));   // Light yellow background
+        HPEN tooltipPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128)); // Gray border
+        SelectObject(hdc, tooltipBrush);
+        SelectObject(hdc, tooltipPen);
+
+        // Draw rounded rectangle for tooltip
+        RoundRect(hdc, tooltipX, tooltipY,
+                  tooltipX + textSize.cx + 10, tooltipY + textSize.cy + 6,
+                  5, 5);
+
+        // Draw text
+        SetTextColor(hdc, RGB(0, 0, 0)); // Black text
+        SetBkMode(hdc, TRANSPARENT);     // Transparent background
+        TextOutA(hdc, tooltipX + 5, tooltipY + 3, hoverText, strlen(hoverText));
+
+        // Clean up
+        DeleteObject(tooltipBrush);
+        DeleteObject(tooltipPen);
+    }
+}
+
+bool CheckPos(float X, float Y, bool isPlayer = false)
+{
+    // First check if we're within map boundaries
+    if (X < 0 || X > MAP_WIDTH - 1 || Y < 0 || Y > MAP_HEIGHT - 1)
+        return false;
+
+    // Define player hitbox corners (using a consistent offset value)
+    const float offset = 0.8f; // Player size within a cell
+
+    // Check all four corners of the player's hitbox
+    int cornerX1 = floor(X);
+    int cornerY1 = floor(Y);
+    int cornerX2 = floor(X + offset);
+    int cornerY2 = floor(Y + offset);
+    // if (isPlayer)
+    //     printf("cornerX1: %d, cornerY1: %d, cornerX2: %d, cornerY2: %d\n, Ground status: %d\n",
+    //            cornerX1, cornerY1, cornerX2, cornerY2, gameMap[cornerY1][cornerX1].type == GROUND);
+    // Make sure all corners are within bounds
+    if (cornerX2 >= MAP_WIDTH || cornerY2 >= MAP_HEIGHT)
+        return false;
+
+    // Check if any corner is colliding with a non-ground object
+    if (gameMap[cornerY1][cornerX1].type != GROUND)
+        return false;
+    if (gameMap[cornerY1][cornerX2].type != GROUND)
+        return false;
+    if (gameMap[cornerY2][cornerX1].type != GROUND)
+        return false;
+    if (gameMap[cornerY2][cornerX2].type != GROUND)
+        return false;
+
+    return true;
+}
+// Handle input
+void handleInput()
+{
+    if ((GetAsyncKeyState(VK_LEFT) & 0x8000) || (GetAsyncKeyState('A') & 0x8000))
+    {
+        if (CheckPos(playerX - PLAYER_SPEED, playerY, true))
+            playerX -= PLAYER_SPEED;
+        else // Nice tweak
+            playerX = floor(playerX);
+    }
+    if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) || (GetAsyncKeyState('D') & 0x8000))
+    {
+        if (CheckPos(playerX + PLAYER_SPEED, playerY, true))
+            playerX += PLAYER_SPEED;
+        else // Nice tweak
+            playerX = floor(playerX);
+    }
+    if ((GetAsyncKeyState(VK_UP) & 0x8000) || (GetAsyncKeyState('W') & 0x8000))
+    {
+        if (CheckPos(playerX, playerY - PLAYER_SPEED, true))
+            playerY -= PLAYER_SPEED;
+        else // Nice tweak
+            playerY = floor(playerY);
+    }
+    if ((GetAsyncKeyState(VK_DOWN) & 0x8000) || (GetAsyncKeyState('S') & 0x8000))
+    {
+        if (CheckPos(playerX, playerY + PLAYER_SPEED, true))
+            playerY += PLAYER_SPEED;
+        else // Nice tweak
+            playerY = floor(playerY);
+    }
+    // L=0x4c,R=0x52,1~5=0x31~0x35,F1~F3=0x70~0x72
+    if (GetAsyncKeyState(0x4c) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, LeftHand);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &LeftHand;
+        }
+    }
+    if (GetAsyncKeyState(0x52) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, RightHand);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &RightHand;
+        }
+    }
+    if (GetAsyncKeyState(0x31) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, Bar[0]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &Bar[0];
+        }
+    }
+    if (GetAsyncKeyState(0x32) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, Bar[1]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &Bar[1];
+        }
+    }
+    if (GetAsyncKeyState(0x33) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, Bar[2]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &Bar[2];
+        }
+    }
+    if (GetAsyncKeyState(0x34) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, Bar[3]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &Bar[3];
+        }
+    }
+    if (GetAsyncKeyState(0x35) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, Bar[4]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &Bar[4];
+        }
+    }
+    if (GetAsyncKeyState(0x70) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, onPlayer[0]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &onPlayer[0];
+        }
+    }
+    if (GetAsyncKeyState(0x71) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, onPlayer[1]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &onPlayer[1];
+        }
+    }
+    if (GetAsyncKeyState(0x72) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
+            std::swap(*SelectedDrop, onPlayer[2]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &onPlayer[2];
+        }
+    }
+
+    // Improved backpack toggle with B key
+    bool bKeyIsPressed = (GetAsyncKeyState('B') & 0x8000) != 0;
+    if (bKeyIsPressed)
+    {
+        ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
+        // Sleep(200);
+    }
+}
+
+bool isDestroyed(float x, float y)
+{
+    if (gameMap[(int)y][(int)x].health <= 0)
+        return 1;
+    return 0;
+}
+
+void Drop(float x, float y)
+{
+    bag.push_back(mp[gameMap[(int)y][(int)x].type]); // Missing drop function
+    std::sort(bag.begin(), bag.end());
+}
+
+void MobDeath()
+{
+    for (int i = 0; i < allmobs.size(); i++)
+    {
+        while (i < allmobs.size() && allmobs[i].blood <= 0)
+        {
+            allmobs.erase(allmobs.begin() + i);
+            if (LeftHand == EMPTY)
+                LeftHand = STICK;
+            else if (RightHand == EMPTY)
+                RightHand = STICK;
+            else
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    if (Bar[i] == EMPTY)
+                    {
+                        Bar[i] = STICK;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Update mouse hover information
+void updateMouseHover()
+{
+    POINT cursorPos;
+    GetCursorPos(&cursorPos);
+    ScreenToClient(GetForegroundWindow(), &cursorPos);
+
+    // Convert screen coordinates to grid coordinates
+    int gridX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
+    int gridY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+
+    // Check if mouse is within map bounds
+    if (gridX >= 0 && gridX < MAP_WIDTH && gridY >= 0 && gridY < MAP_HEIGHT)
+    {
+        // Check if mouse has moved to a new grid cell
+        if (gridX != lastMouseGridX || gridY != lastMouseGridY)
+        {
+            lastMouseGridX = gridX;
+            lastMouseGridY = gridY;
+            hoverStartTime = GetTickCount(); // Reset hover timer
+            showHoverInfo = false;
+        }
+        else if (!showHoverInfo && GetTickCount() - hoverStartTime > 500) // 0.5 seconds
+        {
+            // Mouse has been hovering over the same cell for 0.5 seconds
+            showHoverInfo = true;
+        }
+    }
+    else
+    {
+        // Mouse is outside map bounds
+        showHoverInfo = false;
+        lastMouseGridX = -1;
+        lastMouseGridY = -1;
+    }
+
+    lastMousePos = cursorPos;
+}
+
+// Window procedure function
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        for (float i = 0.0; i <= MAP_HEIGHT; i += 1.00 / 32.00)
+        {
+            for (float j = 0.0; j <= MAP_WIDTH; j += 1.00 / 32.00)
+            {
+                if (isDestroyed(j, i))
+                {
+                    Drop(j, i);
+                }
+            }
+        }
+
+    case WM_MOUSEMOVE:
+        // Track mouse movement for hover functionality
+        lastMousePos.x = GET_X_LPARAM(lParam);
+        lastMousePos.y = GET_Y_LPARAM(lParam);
+        return 0;
+
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+        drawGame(hdc); // Draw the game
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
+    case WM_CLOSE:
+        PostQuitMessage(0);
+        return 0;
+    }
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+void attackTarget(int x, int y)
+{
+    if (gameMap[y][x].type != GROUND)
+    {
+        gameMap[y][x].health -= attackPower;
+        // printf("x: %d, y: %d, health: %d\n", x, y, gameMap[y][x].health);
+    }
+}
+
+void attackMobs(double x, double y)
+{
+    for (int i = 0; i < allmobs.size(); i++)
+    {
+        double mobX = allmobs[i].x, mobY = allmobs[i].y;
+        if (mobX <= x && mobX + GRID_SIZE >= x && mobY <= y && mobY + GRID_SIZE >= y)
+        {
+            allmobs[i].blood -= attackPower;
+            if (LeftHand == STICK || RightHand == STICK)
+                allmobs[i].blood -= stickAttackPower;
+        }
+    }
+}
+
+// Handle mouse click for attacks
+void handleMouseClick()
+{
+    int currentTime = clock();
+    if (currentTime - lastAttackTime >= 200)
+    { // Attack interval is 0.2 seconds
+        // std::cout<<1;
+        POINT cursorPos;
+        GetCursorPos(&cursorPos);
+        ScreenToClient(GetForegroundWindow(), &cursorPos);
+
+        float targetX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
+        float targetY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+        // std::cout<< targetX << ' ' << targetY << ' ' << playerX << ' ' << playerY <<"\n";
+
+        if (targetX >= 0 && targetX < MAP_WIDTH && targetY >= 0 && targetY < MAP_HEIGHT &&
+            isPathClear(playerX, playerY, (int)targetX, (int)targetY) && KEY_DOWN(MOUSE_MOVED))
+        {
+            attackTarget((int)targetX, (int)targetY); // std::cout<<"A\n";
+            attackMobs(targetX, targetY);
+            lastAttackTime = currentTime; // Update last attack time
+        }
+    }
+}
+
+void SummonMobs()
+{
+    int SummonRand = rand() % 100;
+    if (SummonRand == 0)
+    {
+        mobs newMob;
+        newMob.x = rand() % MAP_WIDTH;
+        newMob.y = rand() % MAP_HEIGHT;
+        newMob.speed = 0.1;
+        newMob.damage = 1;
+        newMob.blood = 10;
+        allmobs.push_back(newMob);
+    }
+    for (int i = 0; i < allmobs.size(); i++)
+    {
+        bool moved = false;
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            float dx = (rand() % 3 - 1) * allmobs[i].speed;
+            float dy = (rand() % 3 - 1) * allmobs[i].speed;
+            float newX = allmobs[i].x + dx;
+            float newY = allmobs[i].y + dy;
+            if (CheckPos(newX, newY))
+            {
+                allmobs[i].x = newX;
+                allmobs[i].y = newY;
+                moved = true;
+                break;
+            }
+        }
+        if (!moved)
+        {
+            // If after multiple attempts the mob can't move, stay in place
+        }
+    }
+}
+
+// Main entry point
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+    mp[OBSTACLE] = "Stone";
+    mp[TREE] = "Wood";
+    mp[WORKBENCH] = "Bench";
+
+    // Register window class
+    WNDCLASSA wc = {};
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = "SmoothMovementGame";
+    RegisterClassA(&wc);
+
+    // Create window
+    HWND hwnd = CreateWindowExA(
+        0,
+        "SmoothMovementGame",
+        "Termiverve v3.0 by Horznel Studios of Games and Technology,Welfchor Studios and FBY",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
+        NULL, NULL, hInstance, NULL);
+
+    if (hwnd == NULL)
+    {
+        return 0;
+    }
+
+    ShowWindow(hwnd, nCmdShow);
+
+    // Get console window handle
+    HWND ConsoleHwnd = GetConsoleWindow();
+
+    // Hide console window
+    // ShowWindow(ConsoleHwnd, SW_HIDE);
+
+    // Generate random map
+    generateRandomMap();
+
+    // Message loop
+    MSG msg = {};
+    while (msg.message != WM_QUIT)
+    {
+        // Process messages
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        else
+        {
+            // Check for pause key
+            if (GetAsyncKeyState('P') & 0x8000)
+            {
+                isPaused = !isPaused;
+                Sleep(200); // Prevent rapid toggling
+            }
+
+            // Only run game logic if not paused
+            if (!isPaused)
+            {
+                // Update mouse hover information
+                updateMouseHover();
+
+                // Summon mobs
+                SummonMobs();
+                // Handle input and game logic
+                handleInput();
+                // Handle mouse
+                handleMouseClick();
+                // Handle mob deaths
+                MobDeath();
+            }
+
+            // Always redraw the main window to prevent visual glitches
+            InvalidateRect(hwnd, NULL, TRUE);
+
+            // Also redraw backpack window if it's open
+            if (isBackpackOpen && backpackWindow != NULL)
+            {
+                InvalidateRect(backpackWindow, NULL, TRUE);
+            }
+
+            // Sleep to control frame rate
+            Sleep(20);
+        }
+    }
+
+    // Clean up backpack window if it's still open
+    if (backpackWindow != NULL)
+    {
+        DestroyWindow(backpackWindow);
+    }
+
+    return 0;
+}
