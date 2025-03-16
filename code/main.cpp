@@ -431,7 +431,7 @@ void drawGame(HDC hdc)
     }
     // Construct model labels to match item names
     // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
-    printf("%d %d\n", itemNamesStr.size(), modelStr.size());
+    // printf("%d %d\n", itemNamesStr.size(), modelStr.size());
     const char *text = itemNamesStr.c_str();
     const char *model = modelStr.c_str();
 
@@ -497,11 +497,11 @@ void drawGame(HDC hdc)
     }
 }
 
-bool CheckPos(float X, float Y, bool isPlayer = false)
+short CheckPos(float X, float Y, bool isPlayer = false)
 {
     // First check if we're within map boundaries
     if (X < 0 || X > MAP_WIDTH - 1 || Y < 0 || Y > MAP_HEIGHT - 1)
-        return false;
+        return -1;
 
     // Define player hitbox corners (using a consistent offset value)
     const float offset = 0.8f; // Player size within a cell
@@ -516,7 +516,7 @@ bool CheckPos(float X, float Y, bool isPlayer = false)
     //            cornerX1, cornerY1, cornerX2, cornerY2, gameMap[cornerY1][cornerX1].type == GROUND);
     // Make sure all corners are within bounds
     if (cornerX2 >= MAP_WIDTH || cornerY2 >= MAP_HEIGHT)
-        return false;
+        return -1;
 
     // Check if any corner is colliding with a non-ground object
     if (gameMap[cornerY1][cornerX1].type != GROUND)
@@ -535,30 +535,30 @@ void handleInput()
 {
     if ((GetAsyncKeyState(VK_LEFT) & 0x8000) || (GetAsyncKeyState('A') & 0x8000))
     {
-        if (CheckPos(playerX - PLAYER_SPEED, playerY, true))
+        if (CheckPos(playerX - PLAYER_SPEED, playerY, true) > 0)
             playerX -= PLAYER_SPEED;
-        else // Nice tweak
+        else if (CheckPos(playerX - PLAYER_SPEED, playerY, true) == 0) // excl. OOB
             playerX = floor(playerX);
     }
     if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) || (GetAsyncKeyState('D') & 0x8000))
     {
-        if (CheckPos(playerX + PLAYER_SPEED, playerY, true))
+        if (CheckPos(playerX + PLAYER_SPEED, playerY, true) > 0)
             playerX += PLAYER_SPEED;
-        else // Nice tweak
+        else if (CheckPos(playerX + PLAYER_SPEED, playerY, true) == 0) // excl. OOB
             playerX = floor(playerX);
     }
     if ((GetAsyncKeyState(VK_UP) & 0x8000) || (GetAsyncKeyState('W') & 0x8000))
     {
-        if (CheckPos(playerX, playerY - PLAYER_SPEED, true))
+        if (CheckPos(playerX, playerY - PLAYER_SPEED, true) > 0)
             playerY -= PLAYER_SPEED;
-        else // Nice tweak
+        else if (CheckPos(playerX, playerY - PLAYER_SPEED, true) == 0) // excl. OOB
             playerY = floor(playerY);
     }
     if ((GetAsyncKeyState(VK_DOWN) & 0x8000) || (GetAsyncKeyState('S') & 0x8000))
     {
-        if (CheckPos(playerX, playerY + PLAYER_SPEED, true))
+        if (CheckPos(playerX, playerY + PLAYER_SPEED, true) > 0)
             playerY += PLAYER_SPEED;
-        else // Nice tweak
+        else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
             playerY = floor(playerY);
     }
     // L=0x4c,R=0x52,1~5=0x31~0x35,F1~F3=0x70~0x72
@@ -875,6 +875,11 @@ void SummonMobs()
         newMob.speed = 0.1;
         newMob.damage = 1;
         newMob.blood = 10;
+        while (gameMap[(int)newMob.y][(int)newMob.x].type != GROUND)
+        {
+            newMob.x = rand() % MAP_WIDTH;
+            newMob.y = rand() % MAP_HEIGHT;
+        }
         allmobs.push_back(newMob);
     }
     for (int i = 0; i < allmobs.size(); i++)
@@ -919,7 +924,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HWND hwnd = CreateWindowExA(
         0,
         "SmoothMovementGame",
-        "Termiverve v3.0 by Horznel Studios of Games and Technology,Welfchor Studios and FBY",
+        "Termiverve v3",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
         NULL, NULL, hInstance, NULL);
