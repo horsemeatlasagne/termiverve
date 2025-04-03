@@ -1,3 +1,5 @@
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #include <vector>
 #include <cstdlib>
@@ -9,56 +11,22 @@
 #include <algorithm>
 #include <map>
 #include <cstdio>
+#include "constants.h"
+#include "main.h"
+#include "inputhandling.h"
 
-#define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0) // For keyboard detection
+// Define global variables
 
-// Game constants
-const int GRID_SIZE = 32;           // Size of each grid cell (32 pixels)
-const int MAP_WIDTH = 70;           // Map width (in grid cells)
-const int MAP_HEIGHT = 70;          // Map height (in grid cells)
-const int WINDOW_WIDTH = 800;       // Window width
-const int WINDOW_HEIGHT = 800;      // Window height
-const float PLAYER_SPEED = 0.2f;    // Player movement speed
-const float ATTACK_INTERVAL = 0.2f; // Attack interval 0.2 seconds
-const int MAX_ATTACK_DISTANCE = 3;  // Maximum attack distance is 3 grid cells
-const int TREE_HEALTH = 10;
-const int WORKBENCH_HEALTH = 7;
-const int ATTACK_DAMAGE = 2, attackPower = 1, stickAttackPower = 5;
-const int CARD_WORD_Y1 = WINDOW_HEIGHT - 80;
-const int CARD_WORD_Y2 = WINDOW_HEIGHT - 40;
-const int CARD_WORD_X1 = 0;
-const int CARD_WORD_X2 = WINDOW_WIDTH - 10;
-const int OBSTACLE_HEALTH = 7;
-// Game object types
-enum GameObject
-{
-    GROUND,
-    OBSTACLE,
-    TREE,
-    WORKBENCH,
-    PLAYER
-};
-
-// Item types
-enum GameDrops
-{
-    EMPTY,
-    WOOD,
-    STONE,
-    LEAF,
-    WORK,
-    STICK
-};
-
-// Initialize game items
+std::vector<std::string> bag;
 GameDrops LeftHand = EMPTY;
 GameDrops RightHand = EMPTY;
-GameDrops Bar[12] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};
-GameDrops onPlayer[5] = {EMPTY, EMPTY, EMPTY};
+GameDrops onPlayer[3] = {EMPTY, EMPTY, EMPTY};
+GameDrops Bar[5] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};
+
+
 
 std::string DropsName[] = {"Empty", "Wood", "Stone", "Leaf", "Bench", "Stick"};
 std::string ModelName[] = {"L", "R", "F1", "F2", "F3", "1", "2", "3", "4", "5"};
-std::vector<std::string> bag;
 
 // Game entity structure
 struct GameEntity
@@ -530,177 +498,7 @@ short CheckPos(float X, float Y, bool isPlayer = false)
 
     return true;
 }
-// Handle input
-void handleInput()
-{
-    if ((GetAsyncKeyState(VK_LEFT) & 0x8000) || (GetAsyncKeyState('A') & 0x8000))
-    {
-        if (CheckPos(playerX - PLAYER_SPEED, playerY, true) > 0)
-            playerX -= PLAYER_SPEED;
-        else if (CheckPos(playerX - PLAYER_SPEED, playerY, true) == 0) // excl. OOB
-            playerX = floor(playerX);
-    }
-    if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) || (GetAsyncKeyState('D') & 0x8000))
-    {
-        if (CheckPos(playerX + PLAYER_SPEED, playerY, true) > 0)
-            playerX += PLAYER_SPEED;
-        else if (CheckPos(playerX + PLAYER_SPEED, playerY, true) == 0) // excl. OOB
-            playerX = floor(playerX);
-    }
-    if ((GetAsyncKeyState(VK_UP) & 0x8000) || (GetAsyncKeyState('W') & 0x8000))
-    {
-        if (CheckPos(playerX, playerY - PLAYER_SPEED, true) > 0)
-            playerY -= PLAYER_SPEED;
-        else if (CheckPos(playerX, playerY - PLAYER_SPEED, true) == 0) // excl. OOB
-            playerY = floor(playerY);
-    }
-    if ((GetAsyncKeyState(VK_DOWN) & 0x8000) || (GetAsyncKeyState('S') & 0x8000))
-    {
-        if (CheckPos(playerX, playerY + PLAYER_SPEED, true) > 0)
-            playerY += PLAYER_SPEED;
-        else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
-            playerY = floor(playerY);
-    }
-    // L=0x4c,R=0x52,1~5=0x31~0x35,F1~F3=0x70~0x72
-    if (GetAsyncKeyState(0x4c) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, LeftHand);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &LeftHand;
-        }
-    }
-    if (GetAsyncKeyState(0x52) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, RightHand);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &RightHand;
-        }
-    }
-    if (GetAsyncKeyState(0x31) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, Bar[0]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &Bar[0];
-        }
-    }
-    if (GetAsyncKeyState(0x32) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, Bar[1]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &Bar[1];
-        }
-    }
-    if (GetAsyncKeyState(0x33) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, Bar[2]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &Bar[2];
-        }
-    }
-    if (GetAsyncKeyState(0x34) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, Bar[3]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &Bar[3];
-        }
-    }
-    if (GetAsyncKeyState(0x35) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, Bar[4]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &Bar[4];
-        }
-    }
-    if (GetAsyncKeyState(0x70) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, onPlayer[0]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &onPlayer[0];
-        }
-    }
-    if (GetAsyncKeyState(0x71) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, onPlayer[1]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &onPlayer[1];
-        }
-    }
-    if (GetAsyncKeyState(0x72) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, onPlayer[2]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &onPlayer[2];
-        }
-    }
 
-    // Improved backpack toggle with B key
-    bool bKeyIsPressed = (GetAsyncKeyState('B') & 0x8000) != 0;
-    if (bKeyIsPressed)
-    {
-        ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
-        // Sleep(200);
-    }
-}
 
 bool isDestroyed(float x, float y)
 {
@@ -709,37 +507,7 @@ bool isDestroyed(float x, float y)
     return 0;
 }
 
-void Drop(float x, float y)
-{
-    bag.push_back(mp[gameMap[(int)y][(int)x].type]); // Missing drop function
-    std::sort(bag.begin(), bag.end());
-}
 
-void MobDeath()
-{
-    for (int i = 0; i < allmobs.size(); i++)
-    {
-        while (i < allmobs.size() && allmobs[i].blood <= 0)
-        {
-            allmobs.erase(allmobs.begin() + i);
-            if (LeftHand == EMPTY)
-                LeftHand = STICK;
-            else if (RightHand == EMPTY)
-                RightHand = STICK;
-            else
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    if (Bar[i] == EMPTY)
-                    {
-                        Bar[i] = STICK;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
 
 // Update mouse hover information
 void updateMouseHover()
