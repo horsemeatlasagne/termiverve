@@ -1,5 +1,6 @@
 #pragma once
 #include "main.h"
+#include "constants.h"
 
 short CheckPos(float X, float Y, bool isPlayer = false);
 bool isDestroyed(float x, float y);

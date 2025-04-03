@@ -11,6 +11,7 @@
 #include <windowsx.h>
 #include <algorithm>
 #include <cstdio>
+
 // Game object types
 enum GameObject
 {
@@ -32,13 +33,19 @@ enum GameDrops
     STICK
 };
 
+// Game entity structure
 struct GameEntity;
+
 struct mobs;
 
 // Global variables for player state
 extern float playerX, playerY;
 extern float playerVelocityX, playerVelocityY;
 
+// Additional player-related globals
+extern GameDrops& SelectedDrop;
+extern bool HaveSelected;
+extern int lastAttackTime;
 
 // Global variables for game state
 extern bool isPaused;
@@ -53,12 +60,6 @@ extern HWND backpackWindow;
 extern bool isBackpackOpen;
 extern DWORD lastBackpackToggleTime;
 
-// Inventory-related globals
-extern std::vector<std::string> bag;
-extern GameDrops LeftHand;
-extern GameDrops RightHand;
-extern GameDrops onPlayer[3];
-extern GameDrops Bar[5];
 
 // Global game map and mob management
 extern std::vector<std::vector<GameEntity>> gameMap;

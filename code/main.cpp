@@ -35,7 +35,7 @@ float playerX = MAP_WIDTH / 2.0f;  // Player X position (in grid cells)
 float playerY = MAP_HEIGHT / 2.0f; // Player Y position (in grid cells)
 float playerVelocityX = 0.0f;      // Player horizontal velocity
 float playerVelocityY = 0.0f;      // Player vertical velocity
-GameDrops* SelectedDrop;
+GameDrops& SelectedDrop;
 bool HaveSelected = false;
 int lastAttackTime;
 

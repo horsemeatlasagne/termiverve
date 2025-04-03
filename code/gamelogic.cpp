@@ -1,6 +1,6 @@
 #include "gamelogic.h"
 
-short CheckPos(float X, float Y, bool isPlayer = false)
+short CheckPos(float X, float Y, bool isPlayer)
 {
     // First check if we're within map boundaries
     if (X < 0 || X > MAP_WIDTH - 1 || Y < 0 || Y > MAP_HEIGHT - 1)
