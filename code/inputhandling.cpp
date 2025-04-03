@@ -1,7 +1,10 @@
 #include "inputhandling.h"
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX
-#include <windows.h>
+#endif
 // Handle input
 void handleInput()
 {
@@ -172,4 +175,42 @@ void handleInput()
         ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
         // Sleep(200);
     }
+}
+// Update mouse hover information
+void updateMouseHover()
+{
+    POINT cursorPos;
+    GetCursorPos(&cursorPos);
+    ScreenToClient(GetForegroundWindow(), &cursorPos);
+
+    // Convert screen coordinates to grid coordinates
+    int gridX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
+    int gridY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+
+    // Check if mouse is within map bounds
+    if (gridX >= 0 && gridX < MAP_WIDTH && gridY >= 0 && gridY < MAP_HEIGHT)
+    {
+        // Check if mouse has moved to a new grid cell
+        if (gridX != lastMouseGridX || gridY != lastMouseGridY)
+        {
+            lastMouseGridX = gridX;
+            lastMouseGridY = gridY;
+            hoverStartTime = GetTickCount(); // Reset hover timer
+            showHoverInfo = false;
+        }
+        else if (!showHoverInfo && GetTickCount() - hoverStartTime > 500) // 0.5 seconds
+        {
+            // Mouse has been hovering over the same cell for 0.5 seconds
+            showHoverInfo = true;
+        }
+    }
+    else
+    {
+        // Mouse is outside map bounds
+        showHoverInfo = false;
+        lastMouseGridX = -1;
+        lastMouseGridY = -1;
+    }
+
+    lastMousePos = cursorPos;
 }
