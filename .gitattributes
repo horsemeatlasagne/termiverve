@@ -1,2 +1,7 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto detect text files and perform CRLF normalization
+* text=auto eol=crlf
+# Binary files should not be modified
+*.jpg binary
+*.png binary
+*.gif binary
+*.exe binary

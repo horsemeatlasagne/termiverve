@@ -1,3 +1,6 @@
+#Code editor files
+.cursor/
+
 # Binaries and executables
 *.exe
 *.dll
