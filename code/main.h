@@ -34,16 +34,25 @@ enum GameDrops
 };
 
 // Game entity structure
-struct GameEntity;
-
-struct mobs;
+struct GameEntity
+{
+    GameObject type;
+    int health;
+};
+struct mobs
+{
+    double x, y;
+    double speed;
+    int damage, blood;
+    std::string name;
+};
 
 // Global variables for player state
 extern float playerX, playerY;
 extern float playerVelocityX, playerVelocityY;
 
 // Additional player-related globals
-extern GameDrops& SelectedDrop;
+extern GameDrops* SelectedDrop;
 extern bool HaveSelected;
 extern int lastAttackTime;
 
@@ -81,9 +90,3 @@ void handleMouseClick();
 void SummonMobs();
 void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance);
 bool isPathClear(float startX, float startY, float endX, float endY);
-void attackTarget(int targetX, int targetY);
-void attackMobs(float targetX, float targetY);
-bool CheckPos(float newX, float newY);
-void MobDeath();
-bool isDestroyed(float x, float y);
-void Drop(float x, float y);

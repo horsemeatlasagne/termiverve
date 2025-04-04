@@ -11,7 +11,7 @@
 #include <cstdio>
 #include "constants.h"
 #include "main.h"
-#include "inventory.h"
+// #include "inventory.h"
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif

@@ -8,25 +8,14 @@
 #include "main.h"
 #include "inputhandling.h"
 #include "inventory.h"
+#include "gamelogic.h"
 
 
 
 std::string DropsName[] = { "Empty", "Wood", "Stone", "Leaf", "Bench", "Stick" };
 std::string ModelName[] = { "L", "R", "F1", "F2", "F3", "1", "2", "3", "4", "5" };
 
-// Game entity structure
-struct GameEntity
-{
-    GameObject type;
-    int health;
-};
-struct mobs
-{
-    double x, y;
-    double speed;
-    int damage, blood;
-    std::string name;
-};
+
 std::vector<mobs> allmobs;
 // Map state
 std::vector<std::vector<GameEntity>> gameMap(MAP_HEIGHT, std::vector<GameEntity>(MAP_WIDTH, { GROUND, 0 }));
@@ -35,7 +24,7 @@ float playerX = MAP_WIDTH / 2.0f;  // Player X position (in grid cells)
 float playerY = MAP_HEIGHT / 2.0f; // Player Y position (in grid cells)
 float playerVelocityX = 0.0f;      // Player horizontal velocity
 float playerVelocityY = 0.0f;      // Player vertical velocity
-GameDrops& SelectedDrop;
+GameDrops* SelectedDrop;
 bool HaveSelected = false;
 int lastAttackTime;
 
@@ -136,9 +125,9 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         SetBkColor(hdc, RGB(50, 50, 50));      // Dark background
         SetTextColor(hdc, RGB(255, 255, 255)); // White text
 
-        HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        HFONT hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
-            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, (LPCSTR)"Arial");
+            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial");
         SelectObject(hdc, hFont);
 
         // Draw background

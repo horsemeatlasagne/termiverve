@@ -15,3 +15,5 @@ extern GameDrops Bar[5];
 extern std::string DropsName[];
 extern std::string ModelName[];
 std::map<std::string, int> CountBagItems();
+void Drop(float x, float y);
+void MobDeath();

@@ -1,4 +1,6 @@
 #include "gamelogic.h"
+#include "main.h"
+#include "inventory.h"
 
 short CheckPos(float X, float Y, bool isPlayer)
 {
