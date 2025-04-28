@@ -24,7 +24,7 @@ float playerX = MAP_WIDTH / 2.0f;  // Player X position (in grid cells)
 float playerY = MAP_HEIGHT / 2.0f; // Player Y position (in grid cells)
 float playerVelocityX = 0.0f;      // Player horizontal velocity
 float playerVelocityY = 0.0f;      // Player vertical velocity
-GameDrops* SelectedDrop;
+GameDrops *SelectedDrop;
 bool HaveSelected = false;
 int lastAttackTime;
 
@@ -49,7 +49,103 @@ bool isBackpackOpen = false;
 DWORD lastBackpackToggleTime = 0;
 
 // Forward declaration of backpack window procedure
-LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+// LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+// Backpack window procedure
+LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+
+        // Set up colors and fonts
+        SetBkColor(hdc, RGB(50, 50, 50));      // Dark background
+        SetTextColor(hdc, RGB(255, 255, 255)); // White text
+
+        HFONT hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+            DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial");
+        SelectObject(hdc, hFont);
+
+        // Draw background
+        RECT clientRect;
+        GetClientRect(hwnd, &clientRect);
+        HBRUSH bgBrush = CreateSolidBrush(RGB(50, 50, 50));
+        FillRect(hdc, &clientRect, bgBrush);
+        DeleteObject(bgBrush);
+
+        // Draw title
+        const char *title = "BACKPACK";
+        TextOutA(hdc, 110, 10, title, strlen(title));
+
+        // Draw separator line
+        HPEN linePen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
+        SelectObject(hdc, linePen);
+        MoveToEx(hdc, 10, 35, NULL);
+        LineTo(hdc, 290, 35);
+        DeleteObject(linePen);
+
+        // Get item counts
+        std::map<std::string, int> itemCounts = CountBagItems();
+
+        // Draw table headers
+        TextOutA(hdc, 30, 45, "ITEM", 4);
+        TextOutA(hdc, 200, 45, "COUNT", 5);
+
+        // Draw another separator
+        linePen = CreatePen(PS_SOLID, 1, RGB(150, 150, 150));
+        SelectObject(hdc, linePen);
+        MoveToEx(hdc, 10, 65, NULL);
+        LineTo(hdc, 290, 65);
+        DeleteObject(linePen);
+
+        // Draw items and counts
+        int y = 80;
+        for (const auto &item : itemCounts)
+        {
+            if (item.first != "Empty") // Don't show empty items
+            {
+                TextOutA(hdc, 30, y, item.first.c_str(), item.first.length());
+
+                // Convert count to string
+                char countStr[10];
+                sprintf(countStr, "%d", item.second);
+                TextOutA(hdc, 200, y, countStr, strlen(countStr));
+
+                y += 25; // Move down for next item
+            }
+        }
+
+        // Draw close instruction
+        const char *closeText = "Press 'B' to close";
+        TextOutA(hdc, 90, 350, closeText, strlen(closeText));
+
+        DeleteObject(hFont);
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
+
+    case WM_KEYDOWN:
+        if (wParam == 'B')
+        {
+            // Don't close immediately on B press - let the main loop handle it
+            // This prevents the window from closing and immediately reopening
+            return 0;
+        }
+        return 0;
+
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        backpackWindow = NULL;
+        isBackpackOpen = false;
+        return 0;
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
 
 // Function to create and show backpack window
 void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance)
@@ -111,101 +207,7 @@ void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance)
 
 
 
-// Backpack window procedure
-LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
 
-        // Set up colors and fonts
-        SetBkColor(hdc, RGB(50, 50, 50));      // Dark background
-        SetTextColor(hdc, RGB(255, 255, 255)); // White text
-
-        HFONT hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-            DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
-            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial");
-        SelectObject(hdc, hFont);
-
-        // Draw background
-        RECT clientRect;
-        GetClientRect(hwnd, &clientRect);
-        HBRUSH bgBrush = CreateSolidBrush(RGB(50, 50, 50));
-        FillRect(hdc, &clientRect, bgBrush);
-        DeleteObject(bgBrush);
-
-        // Draw title
-        const char* title = "BACKPACK";
-        TextOutA(hdc, 110, 10, title, strlen(title));
-
-        // Draw separator line
-        HPEN linePen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
-        SelectObject(hdc, linePen);
-        MoveToEx(hdc, 10, 35, NULL);
-        LineTo(hdc, 290, 35);
-        DeleteObject(linePen);
-
-        // Get item counts
-        std::map<std::string, int> itemCounts = CountBagItems();
-
-        // Draw table headers
-        TextOutA(hdc, 30, 45, "ITEM", 4);
-        TextOutA(hdc, 200, 45, "COUNT", 5);
-
-        // Draw another separator
-        linePen = CreatePen(PS_SOLID, 1, RGB(150, 150, 150));
-        SelectObject(hdc, linePen);
-        MoveToEx(hdc, 10, 65, NULL);
-        LineTo(hdc, 290, 65);
-        DeleteObject(linePen);
-
-        // Draw items and counts
-        int y = 80;
-        for (const auto& item : itemCounts)
-        {
-            if (item.first != "Empty") // Don't show empty items
-            {
-                TextOutA(hdc, 30, y, item.first.c_str(), item.first.length());
-
-                // Convert count to string
-                char countStr[10];
-                sprintf(countStr, "%d", item.second);
-                TextOutA(hdc, 200, y, countStr, strlen(countStr));
-
-                y += 25; // Move down for next item
-            }
-        }
-
-        // Draw close instruction
-        const char* closeText = "Press 'B' to close";
-        TextOutA(hdc, 90, 350, closeText, strlen(closeText));
-
-        DeleteObject(hFont);
-        EndPaint(hwnd, &ps);
-        return 0;
-    }
-
-    case WM_KEYDOWN:
-        if (wParam == 'B')
-        {
-            // Don't close immediately on B press - let the main loop handle it
-            // This prevents the window from closing and immediately reopening
-            return 0;
-        }
-        return 0;
-
-    case WM_CLOSE:
-        DestroyWindow(hwnd);
-        backpackWindow = NULL;
-        isBackpackOpen = false;
-        return 0;
-    }
-
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
 
 // Check if path between start and target is clear of obstacles
 bool isPathClear(float startX, float startY, float endX, float endY)
@@ -262,7 +264,7 @@ void drawGame(HDC hdc)
             if (gameMap[y][x].health <= 0 && gameMap[y][x].type != GROUND)
                 gameMap[y][x].type = GROUND;
             GameEntity entity = gameMap[y][x];
-            HBRUSH brush;
+            HBRUSH brush = NULL;
             if (entity.type == GROUND)
             {
                 brush = CreateSolidBrush(RGB(200, 200, 200)); // Gray ground
@@ -300,7 +302,7 @@ void drawGame(HDC hdc)
     DeleteObject(playerBrush);
 
     // Draw mobs
-    for (int i = 0; i < allmobs.size(); i++)
+    for (size_t i = 0; i < allmobs.size(); i++)
     {
         HBRUSH brush;
         brush = CreateSolidBrush(RGB(100, 100, 255)); // Mobs are blue
@@ -326,7 +328,7 @@ void drawGame(HDC hdc)
     std::string itemNamesStr, modelStr;
     for (size_t i = 0; i < itemNames.size(); ++i)
     {
-        for (int j = 1; j <= itemNames[i].size() / 2; ++j)
+        for (size_t j = 1; j <= itemNames[i].size() / 2; ++j)
         {
             modelStr += " ";
         }
@@ -336,7 +338,7 @@ void drawGame(HDC hdc)
         if (i < itemNames.size() - 1)
         {
             itemNamesStr += "    "; // 4 spaces between items
-            for (int j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
+            for (size_t j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
             {
                 modelStr += " ";
             }
@@ -345,8 +347,8 @@ void drawGame(HDC hdc)
     // Construct model labels to match item names
     // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
     // printf("%d %d\n", itemNamesStr.size(), modelStr.size());
-    const char* text = itemNamesStr.c_str();
-    const char* model = modelStr.c_str();
+    const char *text = itemNamesStr.c_str();
+    const char *model = modelStr.c_str();
 
     // Calculate text widths to center both
     SIZE textSize, modelTextSize;
@@ -362,7 +364,7 @@ void drawGame(HDC hdc)
     if (isPaused)
     {
         SetTextColor(hdc, RGB(255, 0, 0)); // Red text for pause
-        const char* pauseText = "GAME PAUSED";
+        const char *pauseText = "GAME PAUSED";
         TextOutA(hdc, WINDOW_WIDTH / 2 - 50, WINDOW_HEIGHT / 2, pauseText, strlen(pauseText));
     }
 
@@ -413,18 +415,19 @@ void drawGame(HDC hdc)
 // Window procedure function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    // the following code may generate issues: Game window not showing
+    // for (float i = 0.0; i <= MAP_HEIGHT; i += 1.00 / 32.00)
+    // {
+    //     for (float j = 0.0; j <= MAP_WIDTH; j += 1.00 / 32.00)
+    //     {
+    //         if (isDestroyed(j, i))
+    //         {
+    //             Drop(j, i);
+    //         }
+    //     }
+    // }
     switch (uMsg)
     {
-        for (float i = 0.0; i <= MAP_HEIGHT; i += 1.00 / 32.00)
-        {
-            for (float j = 0.0; j <= MAP_WIDTH; j += 1.00 / 32.00)
-            {
-                if (isDestroyed(j, i))
-                {
-                    Drop(j, i);
-                }
-            }
-        }
 
     case WM_MOUSEMOVE:
         // Track mouse movement for hover functionality
@@ -490,7 +493,7 @@ void SummonMobs()
         }
         allmobs.push_back(newMob);
     }
-    for (int i = 0; i < allmobs.size(); i++)
+    for (size_t i = 0; i < allmobs.size(); i++)
     {
         bool moved = false;
         for (int attempt = 0; attempt < 3; attempt++)
@@ -545,7 +548,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowWindow(hwnd, nCmdShow);
 
     // Get console window handle
-    HWND ConsoleHwnd = GetConsoleWindow();
+    // HWND ConsoleHwnd = GetConsoleWindow();
 
     // Hide console window
     // ShowWindow(ConsoleHwnd, SW_HIDE);

@@ -52,7 +52,7 @@ void attackTarget(int x, int y)
 
 void attackMobs(double x, double y)
 {
-    for (int i = 0; i < allmobs.size(); i++)
+    for (size_t i = 0; i < allmobs.size(); i++)
     {
         double mobX = allmobs[i].x, mobY = allmobs[i].y;
         if (mobX <= x && mobX + GRID_SIZE >= x && mobY <= y && mobY + GRID_SIZE >= y)

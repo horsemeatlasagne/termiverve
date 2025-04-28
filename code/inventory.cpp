@@ -66,7 +66,7 @@ void Drop(float x, float y)
 
 void MobDeath()
 {
-    for (int i = 0; i < allmobs.size(); i++)
+    for (size_t i = 0; i < allmobs.size(); i++)
     {
         while (i < allmobs.size() && allmobs[i].blood <= 0)
         {
