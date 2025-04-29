@@ -415,10 +415,10 @@ void drawGame(HDC hdc)
 // Window procedure function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    // the following code may generate issues: Game window not showing
-    // for (float i = 0.0; i <= MAP_HEIGHT; i += 1.00 / 32.00)
+    // logic unknown: fixed your bug though, but not sure if it's the right way
+    // for (int i = 0; i <= MAP_HEIGHT; ++i)
     // {
-    //     for (float j = 0.0; j <= MAP_WIDTH; j += 1.00 / 32.00)
+    //     for (int j = 0; j <= MAP_WIDTH; ++j)
     //     {
     //         if (isDestroyed(j, i))
     //         {
