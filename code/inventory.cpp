@@ -1,29 +1,12 @@
-#include <windows.h>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
-// #include <chrono>
-#include <windowsx.h>
-#include <string>
-#include <algorithm>
-#include <map>
-#include <cstdio>
 #include "constants.h"
 #include "main.h"
-// #include "inventory.h"
+#include "globals.h"
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-// Initialize game items
-GameDrops LeftHand = EMPTY;
-GameDrops RightHand = EMPTY;
-GameDrops Bar[12] = { EMPTY, EMPTY, EMPTY, EMPTY, EMPTY };
-GameDrops onPlayer[5] = { EMPTY, EMPTY, EMPTY };
-std::vector<std::string> bag;
 
 
 // Count items in the bag
@@ -32,7 +15,7 @@ std::map<std::string, int> CountBagItems()
     std::map<std::string, int> itemCounts;
 
     // Count items from the bag vector
-    for (const auto& item : bag)
+    for (const auto &item : bag)
     {
         itemCounts[item]++;
     }
