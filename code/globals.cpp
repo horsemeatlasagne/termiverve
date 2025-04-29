@@ -1,6 +1,16 @@
+#include <map>
+#include <vector>
+#include <string>
 #include "globals.h"
 #include "constants.h"
-
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <windowsx.h>
 //Globals
 
 std::string DropsName[] = { "Empty", "Wood", "Stone", "Leaf", "Bench", "Stick" };
@@ -44,6 +54,6 @@ DWORD lastBackpackToggleTime = 0;
 // Initialize game items
 GameDrops LeftHand = EMPTY;
 GameDrops RightHand = EMPTY;
-GameDrops Bar[12] = { EMPTY, EMPTY, EMPTY, EMPTY, EMPTY };
-GameDrops onPlayer[5] = { EMPTY, EMPTY, EMPTY };
+GameDrops Bar[12] = { EMPTY };
+GameDrops onPlayer[5] = { EMPTY };
 std::vector<std::string> bag;

@@ -1,4 +1,15 @@
-#include "main.h"
+#pragma once
+#include <string>
+#include <vector>
+#include <map>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <windowsx.h>
 
 // Game object types
 enum GameObject

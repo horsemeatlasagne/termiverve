@@ -1,3 +1,5 @@
+#include <cmath>
+#include "constants.h"
 #include "gamelogic.h"
 #include "main.h"
 #include "inventory.h"

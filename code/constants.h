@@ -1,6 +1,4 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
-
+#pragma once
 #define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0) // For keyboard detection
 
 // Game constants
@@ -20,5 +18,3 @@ const int CARD_WORD_Y2 = WINDOW_HEIGHT - 40;
 const int CARD_WORD_X1 = 0;
 const int CARD_WORD_X2 = WINDOW_WIDTH - 10;
 const int OBSTACLE_HEALTH = 7;
-
-#endif // CONSTANTS_H

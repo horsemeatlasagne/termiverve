@@ -1,14 +1,10 @@
+#include <cmath>
+#include "constants.h"
 #include "inputhandling.h"
 #include "gamelogic.h"
 #include "inventory.h"
 #include "main.h"
 #include "globals.h"
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 // Handle input
 void handleInput()
 {

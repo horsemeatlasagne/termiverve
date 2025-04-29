@@ -1,12 +1,7 @@
 #pragma once
-#include "main.h"
-#include "constants.h"
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+#include <string>
+#include <map>
+
 
 std::map<std::string, int> CountBagItems();
 void Drop(float x, float y);
