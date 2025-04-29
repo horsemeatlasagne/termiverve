@@ -440,47 +440,6 @@ void handleMouseClick()
     }
 }
 
-void SummonMobs()
-{
-    int SummonRand = rand() % 100;
-    if (SummonRand == 0)
-    {
-        mobs newMob;
-        newMob.x = rand() % MAP_WIDTH;
-        newMob.y = rand() % MAP_HEIGHT;
-        newMob.speed = 0.1;
-        newMob.damage = 1;
-        newMob.blood = 10;
-        while (gameMap[(int)newMob.y][(int)newMob.x].type != GROUND)
-        {
-            newMob.x = rand() % MAP_WIDTH;
-            newMob.y = rand() % MAP_HEIGHT;
-        }
-        allmobs.push_back(newMob);
-    }
-    for (size_t i = 0; i < allmobs.size(); i++)
-    {
-        bool moved = false;
-        for (int attempt = 0; attempt < 3; attempt++)
-        {
-            float dx = (rand() % 3 - 1) * allmobs[i].speed;
-            float dy = (rand() % 3 - 1) * allmobs[i].speed;
-            float newX = allmobs[i].x + dx;
-            float newY = allmobs[i].y + dy;
-            if (CheckPos(newX, newY))
-            {
-                allmobs[i].x = newX;
-                allmobs[i].y = newY;
-                moved = true;
-                break;
-            }
-        }
-        if (!moved)
-        {
-            // If after multiple attempts the mob can't move, stay in place
-        }
-    }
-}
 
 // Main entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)

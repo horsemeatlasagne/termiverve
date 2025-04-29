@@ -38,11 +38,55 @@ short CheckPos(float X, float Y, bool isPlayer)
 
     return true;
 }
+
+void SummonMobs()
+{
+    int SummonRand = rand() % 50;
+    if (SummonRand == 0)
+    {
+        printf("mob spawned\n");
+        mobs newMob;
+        newMob.x = rand() % MAP_WIDTH;
+        newMob.y = rand() % MAP_HEIGHT;
+        newMob.speed = 0.1;
+        newMob.damage = 1;
+        newMob.blood = 10;
+        while (gameMap[(int)newMob.y][(int)newMob.x].type != GROUND)
+        {
+            newMob.x = rand() % MAP_WIDTH;
+            newMob.y = rand() % MAP_HEIGHT;
+        }
+        allmobs.push_back(newMob);
+    }
+    for (size_t i = 0; i < allmobs.size(); i++)
+    {
+        bool moved = false;
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            float dx = (rand() % 3 - 1) * allmobs[i].speed;
+            float dy = (rand() % 3 - 1) * allmobs[i].speed;
+            float newX = allmobs[i].x + dx;
+            float newY = allmobs[i].y + dy;
+            if (CheckPos(newX, newY))
+            {
+                allmobs[i].x = newX;
+                allmobs[i].y = newY;
+                moved = true;
+                break;
+            }
+        }
+        if (!moved)
+        {
+            // If after multiple attempts the mob can't move, stay in place
+        }
+    }
+}
+
+
 bool isDestroyed(float x, float y)
 {
-    if (gameMap[(int)y][(int)x].health <= 0)
-        return 1;
-    return 0;
+    // Check if the object at the given position is destroyed
+    return gameMap[(int)y][(int)x].health <= 0;
 }
 void attackTarget(int x, int y)
 {
