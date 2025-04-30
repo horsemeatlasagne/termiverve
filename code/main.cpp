@@ -55,7 +55,8 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         DeleteObject(linePen);
 
         // Get item counts
-        std::map<std::string, int> itemCounts = CountBagItems();
+        std::map<std::string, int> itemCounts;
+        CountBagItems(itemCounts);
 
         // Draw table headers
         TextOutA(hdc, 30, 45, "ITEM", 4);

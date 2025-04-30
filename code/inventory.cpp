@@ -6,35 +6,33 @@
 
 
 // Count items in the bag
-std::map<std::string, int> CountBagItems()
+void CountBagItems(std::map<std::string, int> &itemCounts)
 {
-    std::map<std::string, int> itemCounts;
 
     // Count items from the bag vector
     for (const auto &item : bag)
     {
-        itemCounts[item]++;
+        ++itemCounts[item];
     }
 
     // Count items from hands and slots
     if (LeftHand != EMPTY)
-        itemCounts[DropsName[LeftHand]]++;
+        ++itemCounts[DropsName[LeftHand]];
     if (RightHand != EMPTY)
-        itemCounts[DropsName[RightHand]]++;
+        ++itemCounts[DropsName[RightHand]];
 
     for (int i = 0; i < 3; i++)
     {
         if (onPlayer[i] != EMPTY)
-            itemCounts[DropsName[onPlayer[i]]]++;
+            ++itemCounts[DropsName[onPlayer[i]]];
     }
 
     for (int i = 0; i < 5; i++)
     {
         if (Bar[i] != EMPTY)
-            itemCounts[DropsName[Bar[i]]]++;
+            ++itemCounts[DropsName[Bar[i]]];
     }
-
-    return itemCounts;
+    return;
 }
 
 void Drop(float x, float y)
@@ -50,7 +48,7 @@ void MobDeath()
     {
         while (i < allmobs.size() && allmobs[i].blood <= 0)
         {
-            allmobs.erase(allmobs.begin() + i);
+            allmobs.erase(allmobs.begin() + i); //logic needs optimisation
             if (LeftHand == EMPTY)
                 LeftHand = STICK;
             else if (RightHand == EMPTY)

@@ -3,6 +3,6 @@
 #include <map>
 
 
-std::map<std::string, int> CountBagItems();
+void CountBagItems(std::map<std::string, int> &itemCounts);
 void Drop(float x, float y);
 void MobDeath();
