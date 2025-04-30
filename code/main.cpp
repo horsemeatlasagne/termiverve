@@ -56,7 +56,7 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
         // Get item counts
         std::map<std::string, int> itemCounts;
-        CountBagItems(itemCounts);
+        CountInventoryItems(itemCounts);
 
         // Draw table headers
         TextOutA(hdc, 30, 45, "ITEM", 4);
@@ -289,8 +289,8 @@ void drawGame(HDC hdc)
     // Construct item names string
     std::vector<std::string> itemNames = {
         DropsName[LeftHand], DropsName[RightHand],
-        DropsName[onPlayer[0]], DropsName[onPlayer[1]], DropsName[onPlayer[2]],
-        DropsName[Bar[0]], DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]] };
+        DropsName[onPlayer[1]], DropsName[onPlayer[2]], DropsName[onPlayer[3]],
+        DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]], DropsName[Bar[5]] };
     // Prepare strings with consistent 4-space separation
     std::string itemNamesStr, modelStr;
     for (size_t i = 0; i < itemNames.size(); ++i)

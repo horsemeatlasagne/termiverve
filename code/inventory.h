@@ -3,6 +3,7 @@
 #include <map>
 
 
-void CountBagItems(std::map<std::string, int> &itemCounts);
+void CountInventoryItems(std::map<std::string, int> &itemCounts);
+bool SlotsAreFull(); //check if hands and slots are full
 void Drop(float x, float y);
 void MobDeath();
