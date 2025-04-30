@@ -1,4 +1,5 @@
 #include <cmath>
+#include <ctime>
 #include "constants.h"
 #include "gamelogic.h"
 #include "main.h"
@@ -107,6 +108,31 @@ void attackMobs(double x, double y)
             allmobs[i].blood -= attackPower;
             if (LeftHand == STICK || RightHand == STICK)
                 allmobs[i].blood -= stickAttackPower;
+        }
+    }
+}
+
+// Handle mouse click for attacks
+void handleMouseClick()
+{
+    int currentTime = clock();
+    if (currentTime - lastAttackTime >= 200)
+    { // Attack interval is 0.2 seconds
+        // std::cout<<1;
+        POINT cursorPos;
+        GetCursorPos(&cursorPos);
+        ScreenToClient(GetForegroundWindow(), &cursorPos);
+
+        float targetX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
+        float targetY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+        // std::cout<< targetX << ' ' << targetY << ' ' << playerX << ' ' << playerY <<"\n";
+
+        if (targetX >= 0 && targetX < MAP_WIDTH && targetY >= 0 && targetY < MAP_HEIGHT &&
+            isPathClear(playerX, playerY, (int)targetX, (int)targetY) && KEY_DOWN(MOUSE_MOVED))
+        {
+            attackTarget((int)targetX, (int)targetY); // std::cout<<"A\n";
+            attackMobs(targetX, targetY);
+            lastAttackTime = currentTime; // Update last attack time
         }
     }
 }

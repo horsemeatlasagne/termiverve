@@ -39,6 +39,7 @@ std::map<std::string, int> CountBagItems()
 
 void Drop(float x, float y)
 {
+    // if(!)
     bag.push_back(mp[gameMap[(int)y][(int)x].type]); // Missing drop function
     std::sort(bag.begin(), bag.end());
 }
