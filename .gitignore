@@ -4,7 +4,7 @@ spec2.jpg
 
 #Code editor files
 .cursor/
-
+.trae/
 # Binaries and executables
 *.exe
 *.dll
