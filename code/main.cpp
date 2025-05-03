@@ -55,7 +55,8 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         DeleteObject(linePen);
 
         // Get item counts
-        std::map<std::string, int> itemCounts = CountBagItems();
+        std::map<std::string, int> itemCounts;
+        CountInventoryItems(itemCounts);
 
         // Draw table headers
         TextOutA(hdc, 30, 45, "ITEM", 4);
@@ -288,8 +289,8 @@ void drawGame(HDC hdc)
     // Construct item names string
     std::vector<std::string> itemNames = {
         DropsName[LeftHand], DropsName[RightHand],
-        DropsName[onPlayer[0]], DropsName[onPlayer[1]], DropsName[onPlayer[2]],
-        DropsName[Bar[0]], DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]] };
+        DropsName[onPlayer[1]], DropsName[onPlayer[2]], DropsName[onPlayer[3]],
+        DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]], DropsName[Bar[5]] };
     // Prepare strings with consistent 4-space separation
     std::string itemNamesStr, modelStr;
     for (size_t i = 0; i < itemNames.size(); ++i)
@@ -381,19 +382,21 @@ void drawGame(HDC hdc)
 // Window procedure function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    // logic unknown: fixed your bug though, but not sure if it's the right way
-    // for (int i = 0; i <= MAP_HEIGHT; ++i)
-    // {
-    //     for (int j = 0; j <= MAP_WIDTH; ++j)
-    //     {
-    //         if (isDestroyed(j, i))
-    //         {
-    //             Drop(j, i);
-    //         }
-    //     }
-    // }
+
     switch (uMsg)
     {
+        for (int i = 0; i <= MAP_HEIGHT; i += 1.0 / 32.0)
+        {
+            for (int j = 0; j <= MAP_WIDTH; j += 1.0 / 32.0)
+            {
+                printf("i: %d j: %d\n", i, j);
+                if (isDestroyed(j, i))
+                {
+                    Drop(j, i);
+                    gameMap[i][j].type = GROUND;
+                }
+            }
+        }
     case WM_MOUSEMOVE:
         // Track mouse movement for hover functionality
         lastMousePos.x = GET_X_LPARAM(lParam);

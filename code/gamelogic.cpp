@@ -131,6 +131,10 @@ void handleMouseClick()
             isPathClear(playerX, playerY, (int)targetX, (int)targetY) && KEY_DOWN(MOUSE_MOVED))
         {
             attackTarget((int)targetX, (int)targetY); // std::cout<<"A\n";
+            if (isDestroyed(targetX, targetY) && gameMap[(int)targetY][(int)targetX].type != GROUND)
+            {
+                bag.push_back(mp[gameMap[(int)targetY][(int)targetX].type]); //temporary
+            }
             attackMobs(targetX, targetY);
             lastAttackTime = currentTime; // Update last attack time
         }
