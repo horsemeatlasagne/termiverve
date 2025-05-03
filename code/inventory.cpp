@@ -35,6 +35,17 @@ void CountInventoryItems(std::map<std::string, int> &itemCounts)
     return;
 }
 
+// Count only items in the bag (backpack)
+void CountBagItems(std::map<std::string, int> &itemCounts)
+{
+    // Count items from the bag vector only
+    for (const auto &item : bag)
+    {
+        ++itemCounts[item];
+    }
+    return;
+}
+
 bool SlotsAreFull()
 {
     int cnt = 0;
@@ -57,6 +68,7 @@ bool SlotsAreFull()
 
 void DropToSlots(const int x, const int y)
 {
+    printf("Drop to slots.\n"); //debugging helper
     // Convert GameObject to GameDrops
     GameDrops itemType;
     GameObject objType = gameMap[y][x].type;
@@ -113,13 +125,13 @@ void Drop(const int x, const int y)
 {
     if (SlotsAreFull())
     { //check if hands and slots are full
-        printf("slots are full, dropping to bag.\n"); //debugging helper
+        // printf("slots are full, dropping to bag.\n"); //debugging helper
         bag.push_back(mp[gameMap[(int)y][(int)x].type]);
         std::sort(bag.begin(), bag.end());
     }
     else //implement drop to hands and slots
     {
-        printf("Drop to slots.\n"); //debugging helper
+        // printf("Drop to slots.\n"); //debugging helper
         DropToSlots(x, y);
     }
 }

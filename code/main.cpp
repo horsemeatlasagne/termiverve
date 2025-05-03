@@ -45,7 +45,7 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
         // Draw title
         const char *title = "BACKPACK";
-        TextOutA(hdc, 110, 10, title, strlen(title));
+        TextOutA(hdc, 80, 10, title, strlen(title));
 
         // Draw separator line
         HPEN linePen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
@@ -54,9 +54,9 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         LineTo(hdc, 290, 35);
         DeleteObject(linePen);
 
-        // Get item counts
+        // Get item counts (only from bag/backpack)
         std::map<std::string, int> itemCounts;
-        CountInventoryItems(itemCounts);
+        CountBagItems(itemCounts);
 
         // Draw table headers
         TextOutA(hdc, 30, 45, "ITEM", 4);
@@ -385,18 +385,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     switch (uMsg)
     {
-        for (int i = 0; i <= MAP_HEIGHT; i += 1.0 / 32.0)
-        {
-            for (int j = 0; j <= MAP_WIDTH; j += 1.0 / 32.0)
-            {
-                printf("i: %d j: %d\n", i, j);
-                if (isDestroyed(j, i))
-                {
-                    Drop(j, i);
-                    gameMap[i][j].type = GROUND;
-                }
-            }
-        }
+        // for (int i = 0; i <= MAP_HEIGHT; i += 1.0 / 32.0)
+        // {
+        //     for (int j = 0; j <= MAP_WIDTH; j += 1.0 / 32.0)
+        //     {
+        //         printf("i: %d j: %d\n", i, j);
+        //         if (isDestroyed(j, i))
+        //         {
+        //             Drop(j, i);
+        //             gameMap[i][j].type = GROUND;
+        //         }
+        //     }
+        // }
     case WM_MOUSEMOVE:
         // Track mouse movement for hover functionality
         lastMousePos.x = GET_X_LPARAM(lParam);
