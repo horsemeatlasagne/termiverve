@@ -45,7 +45,7 @@ void SummonMobs()
     int SummonRand = rand() % 50;
     if (SummonRand == 0)
     {
-        printf("mob spawned\n");
+        // printf("mob spawned\n");
         mobs newMob;
         newMob.x = rand() % MAP_WIDTH;
         newMob.y = rand() % MAP_HEIGHT;
@@ -133,7 +133,7 @@ void handleMouseClick()
             attackTarget((int)targetX, (int)targetY); // std::cout<<"A\n";
             if (isDestroyed(targetX, targetY) && gameMap[(int)targetY][(int)targetX].type != GROUND)
             {
-                bag.push_back(mp[gameMap[(int)targetY][(int)targetX].type]); //temporary
+                Drop((int)targetX, (int)targetY);
             }
             attackMobs(targetX, targetY);
             lastAttackTime = currentTime; // Update last attack time
