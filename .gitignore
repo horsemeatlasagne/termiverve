@@ -5,6 +5,7 @@ spec2.jpg
 #Code editor files
 .cursor/
 .trae/
+.vscode/
 # Binaries and executables
 *.exe
 *.dll

@@ -55,11 +55,73 @@ bool SlotsAreFull()
     return cnt == 10; //10 slots
 }
 
-void Drop(float x, float y)
+void DropToSlots(const int x, const int y)
 {
-    if (!SlotsAreFull()) //check if hands and slots are full
-        bag.push_back(mp[gameMap[(int)y][(int)x].type]); // Missing drop function
-    std::sort(bag.begin(), bag.end());
+    // Convert GameObject to GameDrops
+    GameDrops itemType;
+    GameObject objType = gameMap[y][x].type;
+
+    // Map GameObject to GameDrops
+    if (objType == OBSTACLE)
+    {
+        itemType = STONE;
+    }
+    else if (objType == TREE)
+    {
+        itemType = WOOD;
+    }
+    else if (objType == WORKBENCH)
+    {
+        itemType = WORK;
+    }
+    else
+    {
+        // Default case or unknown type
+        itemType = EMPTY;
+        printf("Drop failed.\n");
+        return; // Can't pick up GROUND or PLAYER
+    }
+    if (LeftHand == EMPTY) //fill hands first
+    {
+        LeftHand = itemType;
+        return;
+    }
+    if (RightHand == EMPTY)
+    {
+        RightHand = itemType;
+        return;
+    }
+    for (int i = 1; i <= 3; i++) //fill slots on player
+    {
+        if (onPlayer[i] == EMPTY)
+        {
+            onPlayer[i] = itemType;
+            return;
+        }
+    }
+    for (int i = 1; i <= 5; i++) //fill bars
+    {
+        if (Bar[i] == EMPTY)
+        {
+            Bar[i] = itemType;
+            return;
+        }
+    }
+}
+
+void Drop(const int x, const int y)
+{
+    if (SlotsAreFull())
+    { //check if hands and slots are full
+        printf("slots are full, dropping to bag.\n"); //debugging helper
+        bag.push_back(mp[gameMap[(int)y][(int)x].type]);
+        std::sort(bag.begin(), bag.end());
+    }
+    else //implement drop to hands and slots
+    {
+        printf("Drop to slots.\n"); //debugging helper
+        DropToSlots(x, y);
+    }
 }
 
 void MobDeath()
@@ -69,6 +131,7 @@ void MobDeath()
         while (i < allmobs.size() && allmobs[i].blood <= 0)
         {
             allmobs.erase(allmobs.begin() + i); //logic needs optimisation
+            //following code = add to invt
             if (LeftHand == EMPTY)
                 LeftHand = STICK;
             else if (RightHand == EMPTY)

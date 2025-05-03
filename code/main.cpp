@@ -382,19 +382,21 @@ void drawGame(HDC hdc)
 // Window procedure function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    // logic unknown: fixed your bug though, but not sure if it's the right way
-    // for (int i = 0; i <= MAP_HEIGHT; ++i)
-    // {
-    //     for (int j = 0; j <= MAP_WIDTH; ++j)
-    //     {
-    //         if (isDestroyed(j, i))
-    //         {
-    //             Drop(j, i);
-    //         }
-    //     }
-    // }
+
     switch (uMsg)
     {
+        for (int i = 0; i <= MAP_HEIGHT; i += 1.0 / 32.0)
+        {
+            for (int j = 0; j <= MAP_WIDTH; j += 1.0 / 32.0)
+            {
+                printf("i: %d j: %d\n", i, j);
+                if (isDestroyed(j, i))
+                {
+                    Drop(j, i);
+                    gameMap[i][j].type = GROUND;
+                }
+            }
+        }
     case WM_MOUSEMOVE:
         // Track mouse movement for hover functionality
         lastMousePos.x = GET_X_LPARAM(lParam);
