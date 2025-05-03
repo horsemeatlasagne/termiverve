@@ -68,6 +68,19 @@ void handleInput()
         if (HaveSelected)
         {
             HaveSelected = false;
+            std::swap(*SelectedDrop, Bar[0]);
+        }
+        else
+        {
+            HaveSelected = true;
+            SelectedDrop = &Bar[0];
+        }
+    }
+    if (GetAsyncKeyState(0x32) & 0x8000)
+    {
+        if (HaveSelected)
+        {
+            HaveSelected = false;
             std::swap(*SelectedDrop, Bar[1]);
         }
         else
@@ -76,7 +89,7 @@ void handleInput()
             SelectedDrop = &Bar[1];
         }
     }
-    if (GetAsyncKeyState(0x32) & 0x8000)
+    if (GetAsyncKeyState(0x33) & 0x8000)
     {
         if (HaveSelected)
         {
@@ -89,7 +102,7 @@ void handleInput()
             SelectedDrop = &Bar[2];
         }
     }
-    if (GetAsyncKeyState(0x33) & 0x8000)
+    if (GetAsyncKeyState(0x34) & 0x8000)
     {
         if (HaveSelected)
         {
@@ -102,7 +115,7 @@ void handleInput()
             SelectedDrop = &Bar[3];
         }
     }
-    if (GetAsyncKeyState(0x34) & 0x8000)
+    if (GetAsyncKeyState(0x35) & 0x8000)
     {
         if (HaveSelected)
         {
@@ -115,20 +128,20 @@ void handleInput()
             SelectedDrop = &Bar[4];
         }
     }
-    if (GetAsyncKeyState(0x35) & 0x8000)
+    if (GetAsyncKeyState(0x70) & 0x8000)
     {
         if (HaveSelected)
         {
             HaveSelected = false;
-            std::swap(*SelectedDrop, Bar[5]);
+            std::swap(*SelectedDrop, onPlayer[0]);
         }
         else
         {
             HaveSelected = true;
-            SelectedDrop = &Bar[5];
+            SelectedDrop = &onPlayer[0];
         }
     }
-    if (GetAsyncKeyState(0x70) & 0x8000)
+    if (GetAsyncKeyState(0x71) & 0x8000)
     {
         if (HaveSelected)
         {
@@ -141,7 +154,7 @@ void handleInput()
             SelectedDrop = &onPlayer[1];
         }
     }
-    if (GetAsyncKeyState(0x71) & 0x8000)
+    if (GetAsyncKeyState(0x72) & 0x8000)
     {
         if (HaveSelected)
         {
@@ -152,19 +165,6 @@ void handleInput()
         {
             HaveSelected = true;
             SelectedDrop = &onPlayer[2];
-        }
-    }
-    if (GetAsyncKeyState(0x72) & 0x8000)
-    {
-        if (HaveSelected)
-        {
-            HaveSelected = false;
-            std::swap(*SelectedDrop, onPlayer[3]);
-        }
-        else
-        {
-            HaveSelected = true;
-            SelectedDrop = &onPlayer[3];
         }
     }
 
