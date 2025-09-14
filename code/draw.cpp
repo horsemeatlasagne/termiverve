@@ -3,22 +3,23 @@
 #include <raylib.h>
 using namespace std;
 const int screenWidth = 1600, screenHeight = 1200; // Screen resolution
-float dis(float x, float y)						   // Distance
+
+float dis(float x, float y)						   // Distance from the center of the screen
 {
 	x = x - screenWidth / 2, y = y - screenHeight / 2;
 	float len = sqrt(x * x + y * y);
 	return len;
 }
-int main()
+int GameLoop()
 {
 	InitWindow(screenWidth, screenHeight, "Mlocc.io Games");			// Initialize window
 	SetTargetFPS(60);													// Set frame rate
 	float PlayerRadius = 5.0f;											// Player radius
 	float MapRadius = 1000.0f;											// Map radius
-	Vector2 playerPosition = {screenWidth / 2.0f, screenHeight / 2.0f}; // Player coordinates
-	Camera2D camera = {0};												// Camera
+	Vector2 playerPosition = { screenWidth / 2.0f, screenHeight / 2.0f }; // Player coordinates
+	Camera2D camera = { 0 };												// Camera
 	camera.target = playerPosition;										// Camera follows player
-	camera.offset = {screenWidth / 2.0f, screenHeight / 2.0f};			// Fix the player as the camera center
+	camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };			// Fix the player as the camera center
 	camera.rotation = 0.0f;												// Initial rotation angle is 0
 	camera.zoom = 10.0f;												// Initial zoom ratio
 	float Speed = 5.0f;													// Player movement speed
@@ -28,11 +29,11 @@ int main()
 		Vector2 mousePosition = GetMousePosition(); // Mouse coordinates
 		// Absolute mouse coordinates
 		Vector2 transformedMousePosition =
-			{
-				(mousePosition.x - camera.offset.x) / camera.zoom + camera.target.x,
-				(mousePosition.y - camera.offset.y) / camera.zoom + camera.target.y};
+		{
+			(mousePosition.x - camera.offset.x) / camera.zoom + camera.target.x,
+			(mousePosition.y - camera.offset.y) / camera.zoom + camera.target.y };
 		// Absolute mouse direction
-		Vector2 direction = {transformedMousePosition.x - playerPosition.x, transformedMousePosition.y - playerPosition.y};
+		Vector2 direction = { transformedMousePosition.x - playerPosition.x, transformedMousePosition.y - playerPosition.y };
 		// Absolute mouse distance
 		float length = sqrtf(direction.x * direction.x + direction.y * direction.y);
 		// Player movement
@@ -82,7 +83,7 @@ int main()
 		string Position_View = to_string((int)playerPosition.x / 10) + "," + to_string((int)playerPosition.y / 10);
 		int Position_View_Len = Position_View.size();
 		DrawText(Position_View.c_str(), screenWidth - 235 - (Position_View_Len - 5) * 5, 400, 25, BLUE); // Map text
-		Vector2 miniPlayerPosition = {(playerPosition.x - screenWidth / 2) / MapRadius * 150, (playerPosition.y - screenHeight / 2) / MapRadius * 150};
+		Vector2 miniPlayerPosition = { (playerPosition.x - screenWidth / 2) / MapRadius * 150, (playerPosition.y - screenHeight / 2) / MapRadius * 150 };
 		DrawCircle(screenWidth - 200 + miniPlayerPosition.x, 200 + miniPlayerPosition.y, 10, ColorAlpha(YELLOW, 0.75f)); // Player mini-map drawing
 		// Current frame rate
 		int fps = GetFPS();
