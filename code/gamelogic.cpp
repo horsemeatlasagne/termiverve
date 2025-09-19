@@ -5,6 +5,7 @@
 #include "main.h"
 #include "inventory.h"
 #include "globals.h"
+#include "complayer.h"
 
 short CheckPos(float X, float Y, bool isPlayer)
 {
@@ -83,7 +84,6 @@ void SummonMobs()
     }
 }
 
-
 bool isDestroyed(float x, float y)
 {
     // Check if the object at the given position is destroyed
@@ -120,8 +120,7 @@ void handleMouseClick()
     { // Attack interval is 0.2 seconds
         // std::cout<<1;
         POINT cursorPos;
-        GetCursorPos(&cursorPos);
-        ScreenToClient(GetForegroundWindow(), &cursorPos);
+        termiVerve::api::Input::getMousePosition(cursorPos.x, cursorPos.y);
 
         float targetX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
         float targetY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;

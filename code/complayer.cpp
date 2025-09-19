@@ -1,10 +1,10 @@
 // Compatibility layer-- w32-2-raylib.
 
-#ifndef _WIN32
-#define _WIN32 //Win32 DEFINED HERE
+#ifndef _termiverve_win32_api
+#define _termiverve_win32_api // Win32 DEFINED HERE
 #endif
 
-#ifdef _WIN32
+#ifdef _termiverve_win32_api
 #include <windows.h>
 #else
 #include <raylib.h>
@@ -14,17 +14,17 @@
 #include "constants.h"
 #include "globals.h"
 
-namespace termiVerve
+namespace termiVerve::api
 {
     namespace Input
     {
-#ifdef _WIN32
-        inline bool isKeyPressed(int key)
+#ifdef _termiverve_win32_api
+        bool isKeyPressed(int key)
         {
             return (GetAsyncKeyState(key) & 0x8000);
         }
 
-        inline void getMousePosition(int &x, int &y)
+        void getMousePosition(LONG &x, LONG &y);
         {
             POINT cursorPos;
             GetCursorPos(&cursorPos);
@@ -33,7 +33,7 @@ namespace termiVerve
             y = cursorPos.y;
         }
 #else
-        inline bool isKeyPressed(int key)
+        bool isKeyPressed(int key)
         {
             // Convert Windows key codes to Raylib key codes if needed
             int raylibKey = -1;
@@ -105,7 +105,7 @@ namespace termiVerve
             }
             return false;
         }
-        inline void getMousePosition(int &x, int &y)
+        void getMousePosition(int &x, int &y)
         {
             Vector2 mousePos = GetMousePosition();
             x = static_cast<int>(mousePos.x);

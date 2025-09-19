@@ -1,9 +1,12 @@
 // Compatibility layer Header File
+#pragma once
 
-namespace termiVerve
+namespace termiVerve::api
 {
     namespace Input
     {
-        inline bool isKeyPressed(int key);
+        bool isKeyPressed(int key);
+        void getMousePosition(int &x, int &y);
     }
+
 }

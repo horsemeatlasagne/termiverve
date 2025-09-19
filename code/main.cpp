@@ -16,6 +16,10 @@
 #include "gamelogic.h"
 #include "globals.h"
 
+// #ifndef _TERMIVERVE_FALLBACK
+// #define _TERMIVERVE_FALLBACK
+// #endif
+// #ifdef _TERMIVERVE_FALLBACK
 
 // Backpack window procedure
 LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -32,8 +36,8 @@ LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         SetTextColor(hdc, RGB(255, 255, 255)); // White text
 
         HFONT hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-            DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
-            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial");
+                                  DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+                                  CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial");
         SelectObject(hdc, hFont);
 
         // Draw background
@@ -172,10 +176,6 @@ void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance)
     }
 }
 
-
-
-
-
 // Check if path between start and target is clear of obstacles
 bool isPathClear(float startX, float startY, float endX, float endY)
 {
@@ -201,23 +201,23 @@ void generateRandomMap()
     {
         int x = rand() % MAP_WIDTH;
         int y = rand() % MAP_HEIGHT;
-        gameMap[y][x] = { OBSTACLE, OBSTACLE_HEALTH };
+        gameMap[y][x] = {OBSTACLE, OBSTACLE_HEALTH};
     }
     // Generate random trees
     for (int i = 0; i < 100; ++i)
     {
         int x = rand() % MAP_WIDTH;
         int y = rand() % MAP_HEIGHT;
-        gameMap[y][x] = { TREE, TREE_HEALTH };
+        gameMap[y][x] = {TREE, TREE_HEALTH};
     }
     // Generate random workbenches
     for (int i = 0; i < 50; ++i)
     {
         int x = rand() % MAP_WIDTH;
         int y = rand() % MAP_HEIGHT;
-        gameMap[y][x] = { WORKBENCH, WORKBENCH_HEALTH };
+        gameMap[y][x] = {WORKBENCH, WORKBENCH_HEALTH};
     }
-    gameMap[playerY][playerX] = { GROUND, 0 };
+    gameMap[playerY][playerX] = {GROUND, 0};
 }
 
 // Draw the game
@@ -290,7 +290,7 @@ void drawGame(HDC hdc)
     std::vector<std::string> itemNames = {
         DropsName[LeftHand], DropsName[RightHand],
         DropsName[onPlayer[1]], DropsName[onPlayer[2]], DropsName[onPlayer[3]],
-        DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]], DropsName[Bar[5]] };
+        DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]], DropsName[Bar[5]]};
     // Prepare strings with consistent 4-space separation
     std::string itemNamesStr, modelStr;
     for (size_t i = 0; i < itemNames.size(); ++i)
@@ -365,8 +365,8 @@ void drawGame(HDC hdc)
 
         // Draw rounded rectangle for tooltip
         RoundRect(hdc, tooltipX, tooltipY,
-            tooltipX + textSize.cx + 10, tooltipY + textSize.cy + 6,
-            5, 5);
+                  tooltipX + textSize.cx + 10, tooltipY + textSize.cy + 6,
+                  5, 5);
 
         // Draw text
         SetTextColor(hdc, RGB(0, 0, 0)); // Black text
@@ -417,9 +417,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-
-
-
 
 // Main entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -517,3 +514,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     return 0;
 }
+// #endif
