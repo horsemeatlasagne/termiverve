@@ -50,13 +50,13 @@ Thumbs.db
 
 # IDE and editor folders
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
 .vs/
 *.sublime-workspace
 *.sublime-project
+.clangd 
 
 # Node.js
 node_modules/
