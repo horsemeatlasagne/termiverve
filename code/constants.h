@@ -1,12 +1,13 @@
 #pragma once
-#define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0) // For keyboard detection
+#define KEY_DOWN(VK_NONAME)                                                                        \
+    ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0) // For keyboard detection
 
 // Game constants
 const int GRID_SIZE = 32;           // Size of each grid cell (32 pixels)
 const int MAP_WIDTH = 70;           // Map width (in grid cells)
 const int MAP_HEIGHT = 70;          // Map height (in grid cells)
-const int WINDOW_WIDTH = 800;       // Window width
-const int WINDOW_HEIGHT = 800;      // Window height
+const int WINDOW_WIDTH = 1600;      // Window width
+const int WINDOW_HEIGHT = 1200;     // Window height
 const float PLAYER_SPEED = 0.2f;    // Player movement speed
 const float ATTACK_INTERVAL = 0.2f; // Attack interval 0.2 seconds
 const int MAX_ATTACK_DISTANCE = 3;  // Maximum attack distance is 3 grid cells

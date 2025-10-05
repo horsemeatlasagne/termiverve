@@ -1,185 +1,187 @@
-#include <map>
 #include <cstdio>
 #include <ctime>
+#include <map>
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <windows.h>
-#include <windowsx.h>
 #include "constants.h"
-#include "main.h"
-#include "inputhandling.h"
-#include "inventory.h"
-#include "gamelogic.h"
+// #include "gamelogic.h"
 #include "globals.h"
-
+// #include "inputhandling.h"
+// #include "inventory.h"
+#include "main.h"
+#include <raylib.h>
 
 // Backpack window procedure
-LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+// LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+// {
+//     // TODO: Rewrite logic
+//     switch (uMsg)
+//     {
+//     case WM_PAINT:
+//     {
+//         PAINTSTRUCT ps;
+//         HDC hdc = BeginPaint(hwnd, &ps);
+
+//         // Set up colors and fonts
+//         SetBkColor(hdc, RGB(50, 50, 50));      // Dark background
+//         SetTextColor(hdc, RGB(255, 255, 255)); // White text
+
+//         HFONT hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+//                                   OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+//                                   DEFAULT_PITCH | FF_DONTCARE, L"Arial");
+//         SelectObject(hdc, hFont);
+
+//         // Draw background
+//         RECT clientRect;
+//         GetClientRect(hwnd, &clientRect);
+//         HBRUSH bgBrush = CreateSolidBrush(RGB(50, 50, 50));
+//         FillRect(hdc, &clientRect, bgBrush);
+//         DeleteObject(bgBrush);
+
+//         // Draw title
+//         const char *title = "BACKPACK";
+//         TextOutA(hdc, 80, 10, title, strlen(title));
+
+//         // Draw separator line
+//         HPEN linePen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
+//         SelectObject(hdc, linePen);
+//         MoveToEx(hdc, 10, 35, NULL);
+//         LineTo(hdc, 290, 35);
+//         DeleteObject(linePen);
+
+//         // Get item counts (only from bag/backpack)
+//         std::map<std::string, int> itemCounts;
+//         CountBagItems(itemCounts);
+
+//         // Draw table headers
+//         TextOutA(hdc, 30, 45, "ITEM", 4);
+//         TextOutA(hdc, 200, 45, "COUNT", 5);
+
+//         // Draw another separator
+//         linePen = CreatePen(PS_SOLID, 1, RGB(150, 150, 150));
+//         SelectObject(hdc, linePen);
+//         MoveToEx(hdc, 10, 65, NULL);
+//         LineTo(hdc, 290, 65);
+//         DeleteObject(linePen);
+
+//         // Draw items and counts
+//         int y = 80;
+//         for (const auto &item : itemCounts)
+//         {
+//             if (item.first != "Empty") // Don't show empty items
+//             {
+//                 TextOutA(hdc, 30, y, item.first.c_str(), item.first.length());
+
+//                 // Convert count to string
+//                 char countStr[10];
+//                 sprintf(countStr, "%d", item.second);
+//                 TextOutA(hdc, 200, y, countStr, strlen(countStr));
+
+//                 y += 25; // Move down for next item
+//             }
+//         }
+
+//         // Draw close instruction
+//         const char *closeText = "Press 'B' to close";
+//         TextOutA(hdc, 90, 350, closeText, strlen(closeText));
+
+//         DeleteObject(hFont);
+//         EndPaint(hwnd, &ps);
+//         return 0;
+//     }
+
+//     case WM_KEYDOWN:
+//         if (wParam == 'B')
+//         {
+//             // Don't close immediately on B press - let the main loop handle it
+//             // This prevents the window from closing and immediately reopening
+//             return 0;
+//         }
+//         return 0;
+
+//     case WM_CLOSE:
+//         DestroyWindow(hwnd);
+//         backpackWindow = NULL;
+//         isBackpackOpen = false;
+//         return 0;
+//     }
+
+//     return DefWindowProc(hwnd, uMsg, wParam, lParam);
+// }
+// // * END todo
+
+// // Function to create and show backpack window
+// void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance)
+// {
+//     // Add a time-based cooldown to prevent rapid toggling
+//     DWORD currentTime = GetTickCount();
+//     if (currentTime - lastBackpackToggleTime < 300) // 300ms cooldown
+//     {
+//         return; // Ignore toggle requests that come too quickly
+//     }
+
+//     lastBackpackToggleTime = currentTime;
+
+//     if (isBackpackOpen && backpackWindow != NULL)
+//     {
+//         // Close the window if it's already open
+//         DestroyWindow(backpackWindow);
+//         backpackWindow = NULL;
+//         isBackpackOpen = false;
+//         return;
+//     }
+
+//     // Create backpack window if it doesn't exist
+//     if (backpackWindow == NULL)
+//     {
+//         // Register window class for backpack
+//         WNDCLASSA backpackClass = {};
+//         backpackClass.lpfnWndProc = BackpackWindowProc;
+//         backpackClass.hInstance = hInstance;
+//         backpackClass.lpszClassName = "BackpackWindow";
+//         RegisterClassA(&backpackClass);
+
+//         // Get parent window position
+//         RECT parentRect;
+//         GetWindowRect(parentHwnd, &parentRect);
+
+//         // Create the backpack window
+//         backpackWindow = CreateWindowExA(
+//             WS_EX_TOPMOST | WS_EX_TOOLWINDOW, // Make it stay on top without taskbar icon
+//             "BackpackWindow", "Backpack",
+//             WS_POPUP | WS_VISIBLE, // Popup style without borders
+//             parentRect.left + 50,  // Position it near the parent window
+//             parentRect.top + 50,
+//             300,        // Width
+//             400,        // Height
+//             parentHwnd, // Parent window
+//             NULL, hInstance, NULL);
+
+//         if (backpackWindow != NULL)
+//         {
+//             ShowWindow(backpackWindow, SW_SHOW);
+//             isBackpackOpen = true;
+//         }
+//     }
+// }
+
+inline Vector2 calculateWorldPos(Vector2 gridPos)
 {
-    switch (uMsg)
-    {
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
-
-        // Set up colors and fonts
-        SetBkColor(hdc, RGB(50, 50, 50));      // Dark background
-        SetTextColor(hdc, RGB(255, 255, 255)); // White text
-
-        HFONT hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-            DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
-            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial");
-        SelectObject(hdc, hFont);
-
-        // Draw background
-        RECT clientRect;
-        GetClientRect(hwnd, &clientRect);
-        HBRUSH bgBrush = CreateSolidBrush(RGB(50, 50, 50));
-        FillRect(hdc, &clientRect, bgBrush);
-        DeleteObject(bgBrush);
-
-        // Draw title
-        const char *title = "BACKPACK";
-        TextOutA(hdc, 80, 10, title, strlen(title));
-
-        // Draw separator line
-        HPEN linePen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
-        SelectObject(hdc, linePen);
-        MoveToEx(hdc, 10, 35, NULL);
-        LineTo(hdc, 290, 35);
-        DeleteObject(linePen);
-
-        // Get item counts (only from bag/backpack)
-        std::map<std::string, int> itemCounts;
-        CountBagItems(itemCounts);
-
-        // Draw table headers
-        TextOutA(hdc, 30, 45, "ITEM", 4);
-        TextOutA(hdc, 200, 45, "COUNT", 5);
-
-        // Draw another separator
-        linePen = CreatePen(PS_SOLID, 1, RGB(150, 150, 150));
-        SelectObject(hdc, linePen);
-        MoveToEx(hdc, 10, 65, NULL);
-        LineTo(hdc, 290, 65);
-        DeleteObject(linePen);
-
-        // Draw items and counts
-        int y = 80;
-        for (const auto &item : itemCounts)
-        {
-            if (item.first != "Empty") // Don't show empty items
-            {
-                TextOutA(hdc, 30, y, item.first.c_str(), item.first.length());
-
-                // Convert count to string
-                char countStr[10];
-                sprintf(countStr, "%d", item.second);
-                TextOutA(hdc, 200, y, countStr, strlen(countStr));
-
-                y += 25; // Move down for next item
-            }
-        }
-
-        // Draw close instruction
-        const char *closeText = "Press 'B' to close";
-        TextOutA(hdc, 90, 350, closeText, strlen(closeText));
-
-        DeleteObject(hFont);
-        EndPaint(hwnd, &ps);
-        return 0;
-    }
-
-    case WM_KEYDOWN:
-        if (wParam == 'B')
-        {
-            // Don't close immediately on B press - let the main loop handle it
-            // This prevents the window from closing and immediately reopening
-            return 0;
-        }
-        return 0;
-
-    case WM_CLOSE:
-        DestroyWindow(hwnd);
-        backpackWindow = NULL;
-        isBackpackOpen = false;
-        return 0;
-    }
-
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return {gridPos.x * GRID_SIZE, gridPos.y * GRID_SIZE};
 }
-
-// Function to create and show backpack window
-void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance)
+inline float calculateWorldPos(float gridPos)
 {
-    // Add a time-based cooldown to prevent rapid toggling
-    DWORD currentTime = GetTickCount();
-    if (currentTime - lastBackpackToggleTime < 300) // 300ms cooldown
-    {
-        return; // Ignore toggle requests that come too quickly
-    }
-
-    lastBackpackToggleTime = currentTime;
-
-    if (isBackpackOpen && backpackWindow != NULL)
-    {
-        // Close the window if it's already open
-        DestroyWindow(backpackWindow);
-        backpackWindow = NULL;
-        isBackpackOpen = false;
-        return;
-    }
-
-    // Create backpack window if it doesn't exist
-    if (backpackWindow == NULL)
-    {
-        // Register window class for backpack
-        WNDCLASSA backpackClass = {};
-        backpackClass.lpfnWndProc = BackpackWindowProc;
-        backpackClass.hInstance = hInstance;
-        backpackClass.lpszClassName = "BackpackWindow";
-        RegisterClassA(&backpackClass);
-
-        // Get parent window position
-        RECT parentRect;
-        GetWindowRect(parentHwnd, &parentRect);
-
-        // Create the backpack window
-        backpackWindow = CreateWindowExA(
-            WS_EX_TOPMOST | WS_EX_TOOLWINDOW, // Make it stay on top without taskbar icon
-            "BackpackWindow",
-            "Backpack",
-            WS_POPUP | WS_VISIBLE, // Popup style without borders
-            parentRect.left + 50,  // Position it near the parent window
-            parentRect.top + 50,
-            300,        // Width
-            400,        // Height
-            parentHwnd, // Parent window
-            NULL,
-            hInstance,
-            NULL);
-
-        if (backpackWindow != NULL)
-        {
-            ShowWindow(backpackWindow, SW_SHOW);
-            isBackpackOpen = true;
-        }
-    }
+    return gridPos * GRID_SIZE;
 }
-
-
-
-
 
 // Check if path between start and target is clear of obstacles
 bool isPathClear(float startX, float startY, float endX, float endY)
 {
-    int steps = std::max(std::abs(endX - startX), std::abs(endY - startY));
+    int steps = std::max(abs(endX - startX), abs(endY - startY));
     for (int i = 0; i < steps; ++i)
     {
         float x = startX + (endX - startX) * (i / (float)steps);
@@ -201,27 +203,27 @@ void generateRandomMap()
     {
         int x = rand() % MAP_WIDTH;
         int y = rand() % MAP_HEIGHT;
-        gameMap[y][x] = { OBSTACLE, OBSTACLE_HEALTH };
+        gameMap[y][x] = {OBSTACLE, OBSTACLE_HEALTH};
     }
     // Generate random trees
     for (int i = 0; i < 100; ++i)
     {
         int x = rand() % MAP_WIDTH;
         int y = rand() % MAP_HEIGHT;
-        gameMap[y][x] = { TREE, TREE_HEALTH };
+        gameMap[y][x] = {TREE, TREE_HEALTH};
     }
     // Generate random workbenches
     for (int i = 0; i < 50; ++i)
     {
         int x = rand() % MAP_WIDTH;
         int y = rand() % MAP_HEIGHT;
-        gameMap[y][x] = { WORKBENCH, WORKBENCH_HEALTH };
+        gameMap[y][x] = {WORKBENCH, WORKBENCH_HEALTH};
     }
-    gameMap[playerY][playerX] = { GROUND, 0 };
+    gameMap[playerPos.y][playerPos.x] = {GROUND, 0};
 }
 
 // Draw the game
-void drawGame(HDC hdc)
+void drawGame()
 {
     // Draw the map
     for (int y = 0; y < MAP_HEIGHT; ++y)
@@ -230,290 +232,234 @@ void drawGame(HDC hdc)
         { //-7~8
             if (gameMap[y][x].health <= 0 && gameMap[y][x].type != GROUND)
                 gameMap[y][x].type = GROUND;
-            GameEntity entity = gameMap[y][x];
-            HBRUSH brush = NULL;
-            if (entity.type == GROUND)
+            GameEntity CurrentSelectedBlock = gameMap[y][x];
+            Color clr;
+            if (CurrentSelectedBlock.type == GROUND)
             {
-                brush = CreateSolidBrush(RGB(200, 200, 200)); // Gray ground
+                // printf("Game map: x:%d y:%d type:Ground\n", x, y);
+                clr = GRAY; // Gray ground
             }
-            else if (entity.type == OBSTACLE)
+            else if (CurrentSelectedBlock.type == OBSTACLE)
             {
-                brush = CreateSolidBrush(RGB(100, 100, 100)); // Dark gray obstacles
+                // printf("Game map: x:%d y:%d type:Obstacle\n", x, y);
+                clr = DARKGRAY; // Dark gray obstacles
             }
-            else if (entity.type == TREE)
+            else if (CurrentSelectedBlock.type == TREE)
             {
-                brush = CreateSolidBrush(RGB(0, 255, 0)); // Green trees
+                // printf("Game map: x:%d y:%d type:Tree\n", x, y);
+                clr = GREEN; // Green trees
             }
-            else if (entity.type == WORKBENCH)
+            else if (CurrentSelectedBlock.type == WORKBENCH)
             {
-                brush = CreateSolidBrush(RGB(139, 69, 19)); // Brown workbenches
+                // printf("Game map: x:%d y:%d type:Workbench\n", x, y);
+                clr = BROWN; // Brown workbenches
             }
-            int PaintX1 = x * GRID_SIZE - playerX * GRID_SIZE + 400,
-                PrintY1 = y * GRID_SIZE - playerY * GRID_SIZE + 400,
-                PrintX2 = (x + 1) * GRID_SIZE - playerX * GRID_SIZE + 400,
-                PrintY2 = (y + 1) * GRID_SIZE - playerY * GRID_SIZE + 400;
-            SelectObject(hdc, brush);
-            Rectangle(hdc, PaintX1, PrintY1, PrintX2, PrintY2);
-            DeleteObject(brush);
+            Rectangle CurrentBlock = {calculateWorldPos(x), calculateWorldPos(y), GRID_SIZE,
+                                      GRID_SIZE};
+            DrawRectangleRec(CurrentBlock, clr); // Draw the map entity
+            DrawRectangleLinesEx(CurrentBlock, 1, BLACK);
         }
     }
 
     // Draw the player
-    // int playerPosX = static_cast<int>(round(playerX * GRID_SIZE));  // Player screen X position
-    // int playerPosY = static_cast<int>(round(playerY * GRID_SIZE));  // Player screen Y position
-    int playerPosX = 400, playerPosY = 400;
-    int playerSize = GRID_SIZE;                            // Player size is one grid cell
-    HBRUSH playerBrush = CreateSolidBrush(RGB(255, 0, 0)); // Red player
-    SelectObject(hdc, playerBrush);
-    Rectangle(hdc, playerPosX, playerPosY, playerPosX + playerSize, playerPosY + playerSize); // Draw as square
-    DeleteObject(playerBrush);
-
+    Rectangle playerRect = {calculateWorldPos(playerPos.x), calculateWorldPos(playerPos.y),
+                            GRID_SIZE, GRID_SIZE};
+    DrawRectangleRec(playerRect, RED); // Draw as square
+    // printf("Player X: %f, Player Y: %f\n", calculateWorldPos(playerPos).x,
+    //        calculateWorldPos(playerPos).y);
     // Draw mobs
-    for (size_t i = 0; i < allmobs.size(); i++)
-    {
-        HBRUSH brush;
-        brush = CreateSolidBrush(RGB(100, 100, 255)); // Mobs are blue
-        int PaintX1 = allmobs[i].x * GRID_SIZE - playerX * GRID_SIZE + 400,
-            PrintY1 = allmobs[i].y * GRID_SIZE - playerY * GRID_SIZE + 400,
-            PrintX2 = allmobs[i].x * GRID_SIZE + GRID_SIZE - playerX * GRID_SIZE + 400,
-            PrintY2 = allmobs[i].y * GRID_SIZE + GRID_SIZE - playerY * GRID_SIZE + 400;
-        SelectObject(hdc, brush);
-        Rectangle(hdc, PaintX1, PrintY1, PrintX2, PrintY2);
-        DeleteObject(brush);
-    }
+    // for (int i = 0; i < allmobs.size(); i++)
+    // {
+    //     Color clr = {100, 100, 255}; // Mobs are blue
+    //     Rectangle mob = {allmobs[i].x * GRID_SIZE, allmobs[i].y * GRID_SIZE, GRID_SIZE,
+    //     GRID_SIZE}; DrawRectangleRec(mob, clr);
+    // }
 
-    // Display card
-    SetTextColor(hdc, RGB(0, 0, 0)); // Black text
-    SetBkMode(hdc, TRANSPARENT);     // Transparent background
+    // // Display card
+    // // ClearBackground({0, 0, 0});
 
-    // Construct item names string
-    std::vector<std::string> itemNames = {
-        DropsName[LeftHand], DropsName[RightHand],
-        DropsName[onPlayer[1]], DropsName[onPlayer[2]], DropsName[onPlayer[3]],
-        DropsName[Bar[1]], DropsName[Bar[2]], DropsName[Bar[3]], DropsName[Bar[4]], DropsName[Bar[5]] };
-    // Prepare strings with consistent 4-space separation
-    std::string itemNamesStr, modelStr;
-    for (size_t i = 0; i < itemNames.size(); ++i)
-    {
-        for (size_t j = 1; j <= itemNames[i].size() / 2; ++j)
-        {
-            modelStr += " ";
-        }
-        modelStr += ModelName[i];
+    // // Construct item names string
+    // std::vector<std::string> itemNames = {DropsName[LeftHand],    DropsName[RightHand],
+    //                                       DropsName[onPlayer[1]], DropsName[onPlayer[2]],
+    //                                       DropsName[onPlayer[3]], DropsName[Bar[1]],
+    //                                       DropsName[Bar[2]],      DropsName[Bar[3]],
+    //                                       DropsName[Bar[4]],      DropsName[Bar[5]]};
+    // // Prepare strings with consistent 4-space separation
+    // std::string itemNamesStr, modelStr;
+    // for (size_t i = 0; i < itemNames.size(); ++i)
+    // {
+    //     for (size_t j = 1; j <= itemNames[i].size() / 2; ++j)
+    //     {
+    //         modelStr += " ";
+    //     }
+    //     modelStr += ModelName[i];
 
-        itemNamesStr += itemNames[i];
-        if (i < itemNames.size() - 1)
-        {
-            itemNamesStr += "    "; // 4 spaces between items
-            for (size_t j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
-            {
-                modelStr += " ";
-            }
-        }
-    }
-    // Construct model labels to match item names
-    // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
-    // printf("%d %d\n", itemNamesStr.size(), modelStr.size());
-    const char *text = itemNamesStr.c_str();
-    const char *model = modelStr.c_str();
+    //     itemNamesStr += itemNames[i];
+    //     if (i < itemNames.size() - 1)
+    //     {
+    //         itemNamesStr += "    "; // 4 spaces between items
+    //         for (size_t j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
+    //         {
+    //             modelStr += " ";
+    //         }
+    //     }
+    // }
+    // // Construct model labels to match item names
+    // // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
+    // // printf("%d %d\n", itemNamesStr.size(), modelStr.size());
+    // const char *text = itemNamesStr.c_str();
+    // const char *model = modelStr.c_str();
 
-    // Calculate text widths to center both
-    SIZE textSize, modelTextSize;
-    GetTextExtentPoint32A(hdc, text, strlen(text), &textSize);
-    GetTextExtentPoint32A(hdc, model, strlen(model), &modelTextSize);
+    // // Calculate text widths to center both
+    // int textSizeWidth, modelTextSizeWidth; // Replaced GDI SIZE with int for raylib MeasureText
+    // textSizeWidth = MeasureText(text, 20);
+    // modelTextSizeWidth = MeasureText(model, 20);
 
-    // Position text at bottom center
-    int centerX = WINDOW_WIDTH / 2;
-    TextOutA(hdc, centerX - textSize.cx / 2, WINDOW_HEIGHT - 80, text, strlen(text));
-    TextOutA(hdc, centerX - modelTextSize.cx / 2, WINDOW_HEIGHT - 60, model, strlen(model));
-
-    // Display pause text if game is paused
-    if (isPaused)
-    {
-        SetTextColor(hdc, RGB(255, 0, 0)); // Red text for pause
-        const char *pauseText = "GAME PAUSED";
-        TextOutA(hdc, WINDOW_WIDTH / 2 - 50, WINDOW_HEIGHT / 2, pauseText, strlen(pauseText));
-    }
+    // // Position text at bottom center
+    // int centerX = WINDOW_WIDTH / 2;
+    // DrawText(text, centerX - textSizeWidth / 2, WINDOW_HEIGHT - 80, 20, {0, 0, 0});
+    // DrawText(model, centerX - modelTextSizeWidth / 2, WINDOW_HEIGHT - 60, 20, {0, 0, 0});
+    // // Display pause text if game is paused
+    // if (isPaused)
+    // {
+    //     DrawText("GAME PAUSED", centerX - 50, WINDOW_HEIGHT / 2, 20,
+    //              {255, 0, 0}); // Red text for pause
+    // }
 
     // Display hover information if active
-    if (showHoverInfo)
-    {
-        // Create tooltip-style bubble
-        char hoverText[50];
-        int isGround = (gameMap[lastMouseGridY][lastMouseGridX].type == GROUND) ? 1 : 0;
-        sprintf(hoverText, "X:%d, Y:%d, Ground:%d", lastMouseGridX, lastMouseGridY, isGround);
+    // if (showHoverInfo)
+    // {
+    //     // Create tooltip-style bubble
+    //     char hoverText[50];
+    //     int isGround = (gameMap[lastMouseGridY][lastMouseGridX].type == GROUND) ? 1 : 0;
+    //     sprintf(hoverText, "X:%d, Y:%d, Ground:%d", lastMouseGridX, lastMouseGridY, isGround);
 
-        // Calculate text dimensions
-        SIZE textSize;
-        GetTextExtentPoint32A(hdc, hoverText, strlen(hoverText), &textSize);
+    //     // Calculate text dimensions
+    //     SIZE textSize;
+    //     GetTextExtentPoint32A(hdc, hoverText, strlen(hoverText), &textSize);
 
-        // Calculate tooltip position (offset from cursor)
-        int tooltipX = lastMousePos.x + 15;
-        int tooltipY = lastMousePos.y - textSize.cy - 10;
+    //     // Calculate tooltip position (offset from cursor)
+    //     int tooltipX = lastMousePos.x + 15;
+    //     int tooltipY = lastMousePos.y - textSize.cy - 10;
 
-        // Ensure tooltip stays within window bounds
-        if (tooltipX + textSize.cx + 10 > WINDOW_WIDTH)
-            tooltipX = WINDOW_WIDTH - textSize.cx - 10;
-        if (tooltipY < 5)
-            tooltipY = lastMousePos.y + 15;
+    //     // Ensure tooltip stays within window bounds
+    //     if (tooltipX + textSize.cx + 10 > WINDOW_WIDTH)
+    //         tooltipX = WINDOW_WIDTH - textSize.cx - 10;
+    //     if (tooltipY < 5)
+    //         tooltipY = lastMousePos.y + 15;
 
-        // Draw tooltip background
-        HBRUSH tooltipBrush = CreateSolidBrush(RGB(255, 255, 225));   // Light yellow background
-        HPEN tooltipPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128)); // Gray border
-        SelectObject(hdc, tooltipBrush);
-        SelectObject(hdc, tooltipPen);
+    //     // Draw tooltip background
+    //     HBRUSH tooltipBrush = CreateSolidBrush(RGB(255, 255, 225));   // Light yellow background
+    //     HPEN tooltipPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128)); // Gray border
+    //     SelectObject(hdc, tooltipBrush);
+    //     SelectObject(hdc, tooltipPen);
 
-        // Draw rounded rectangle for tooltip
-        RoundRect(hdc, tooltipX, tooltipY,
-            tooltipX + textSize.cx + 10, tooltipY + textSize.cy + 6,
-            5, 5);
+    //     // Draw rounded rectangle for tooltip
+    //     RoundRect(hdc, tooltipX, tooltipY, tooltipX + textSize.cx + 10, tooltipY + textSize.cy +
+    //     6,
+    //               5, 5);
 
-        // Draw text
-        SetTextColor(hdc, RGB(0, 0, 0)); // Black text
-        SetBkMode(hdc, TRANSPARENT);     // Transparent background
-        TextOutA(hdc, tooltipX + 5, tooltipY + 3, hoverText, strlen(hoverText));
+    //     // Draw text
+    //     SetTextColor(hdc, RGB(0, 0, 0)); // Black text
+    //     SetBkMode(hdc, TRANSPARENT);     // Transparent background
+    //     TextOutA(hdc, tooltipX + 5, tooltipY + 3, hoverText, strlen(hoverText));
 
-        // Clean up
-        DeleteObject(tooltipBrush);
-        DeleteObject(tooltipPen);
-    }
+    //     // Clean up
+    //     DeleteObject(tooltipBrush);
+    //     DeleteObject(tooltipPen);
+    // }
 }
 
-// Window procedure function
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+// // Window procedure function
+// LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+// {
 
-    switch (uMsg)
-    {
-        // for (int i = 0; i <= MAP_HEIGHT; i += 1.0 / 32.0)
-        // {
-        //     for (int j = 0; j <= MAP_WIDTH; j += 1.0 / 32.0)
-        //     {
-        //         printf("i: %d j: %d\n", i, j);
-        //         if (isDestroyed(j, i))
-        //         {
-        //             Drop(j, i);
-        //             gameMap[i][j].type = GROUND;
-        //         }
-        //     }
-        // }
-    case WM_MOUSEMOVE:
-        // Track mouse movement for hover functionality
-        lastMousePos.x = GET_X_LPARAM(lParam);
-        lastMousePos.y = GET_Y_LPARAM(lParam);
-        return 0;
+//     switch (uMsg)
+//     {
+//         // for (int i = 0; i <= MAP_HEIGHT; i += 1.0 / 32.0)
+//         // {
+//         //     for (int j = 0; j <= MAP_WIDTH; j += 1.0 / 32.0)
+//         //     {
+//         //         printf("i: %d j: %d\n", i, j);
+//         //         if (isDestroyed(j, i))
+//         //         {
+//         //             Drop(j, i);
+//         //             gameMap[i][j].type = GROUND;
+//         //         }
+//         //     }
+//         // }
+//     case WM_MOUSEMOVE:
+//         // Track mouse movement for hover functionality
+//         lastMousePos.x = GET_X_LPARAM(lParam);
+//         lastMousePos.y = GET_Y_LPARAM(lParam);
+//         return 0;
 
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
-        drawGame(hdc); // Draw the game
-        EndPaint(hwnd, &ps);
-        return 0;
-    }
-    case WM_CLOSE:
-        PostQuitMessage(0);
-        return 0;
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
-
-
+//     case WM_PAINT:
+//     {
+//         PAINTSTRUCT ps;
+//         HDC hdc = BeginPaint(hwnd, &ps);
+//         drawGame(hdc); // Draw the game
+//         EndPaint(hwnd, &ps);
+//         return 0;
+//     }
+//     case WM_CLOSE:
+//         PostQuitMessage(0);
+//         return 0;
+//     }
+//     return DefWindowProc(hwnd, uMsg, wParam, lParam);
+// }
 
 // Main entry point
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int main()
 {
+    freopen("tmvlog.txt", "w", stdout);
+
+    // DEBUG: Log initial positions
+    printf("DEBUG INIT: Initial playerX=%.2f, playerY=%.2f\n", playerPos.x, playerPos.y);
+
+    Camera2D camera = {0};
+    camera.offset = {WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
     mp[OBSTACLE] = "Stone";
     mp[TREE] = "Wood";
     mp[WORKBENCH] = "Bench";
-
-    // Register window class
-    WNDCLASSA wc = {};
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = "SmoothMovementGame";
-    RegisterClassA(&wc);
-
-    // Create window
-    HWND hwnd = CreateWindowExA(
-        0,
-        "SmoothMovementGame",
-        "Termiverve v3",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
-        NULL, NULL, hInstance, NULL);
-
-    if (hwnd == NULL)
-    {
-        return 0;
-    }
-
-    ShowWindow(hwnd, nCmdShow);
-
-    // Get console window handle
-    // HWND ConsoleHwnd = GetConsoleWindow();
-
-    // Hide console window
-    // ShowWindow(ConsoleHwnd, SW_HIDE);
-
-    // Generate random map
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Termiverve v3");
+    SetTargetFPS(60);
     generateRandomMap();
-
-    // Message loop
-    MSG msg = {};
-    while (msg.message != WM_QUIT)
+    SetExitKey(KEY_ESCAPE);
+    while (!WindowShouldClose())
     {
-        // Process messages
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        // Update player world position every frame
+        camera.target = calculateWorldPos(playerPos);
+        // Drawing logic begins here
+        BeginDrawing();
+        ClearBackground(GRAY);
+        BeginMode2D(camera);
+        // TODO: Research camera system
+        // Only run game logic if not paused
+        if (!isPaused)
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            // Update mouse hover information
+            // updateMouseHover();
+
+            // Summon mobs
+            // SummonMobs();
+            // // Handle input and game logic
+            // handleInput();
+            // // Handle mouse
+            // handleMouseClick();
+            // // Handle mob deaths
+            // MobDeath();
+            drawGame();
         }
-        else
-        {
-            // Check for pause key
-            if (GetAsyncKeyState('P') & 0x8000)
-            {
-                isPaused = !isPaused;
-                Sleep(200); // Prevent rapid toggling
-            }
-
-            // Only run game logic if not paused
-            if (!isPaused)
-            {
-                // Update mouse hover information
-                updateMouseHover();
-
-                // Summon mobs
-                SummonMobs();
-                // Handle input and game logic
-                handleInput();
-                // Handle mouse
-                handleMouseClick();
-                // Handle mob deaths
-                MobDeath();
-            }
-
-            // Always redraw the main window to prevent visual glitches
-            InvalidateRect(hwnd, NULL, TRUE);
-
-            // Also redraw backpack window if it's open
-            if (isBackpackOpen && backpackWindow != NULL)
-            {
-                InvalidateRect(backpackWindow, NULL, TRUE);
-            }
-
-            // Sleep to control frame rate
-            Sleep(20);
-        }
+        EndMode2D();
+        // >> may add redraw logic
+        // Sleep to control frame rate
+        // Sleep(20);
+        EndDrawing();
+        // Drawing logic ends here
     }
-
-    // Clean up backpack window if it's still open
-    if (backpackWindow != NULL)
-    {
-        DestroyWindow(backpackWindow);
-    }
-
+    CloseWindow(); // Close window and unload OpenGL context
     return 0;
 }

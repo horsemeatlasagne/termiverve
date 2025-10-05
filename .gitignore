@@ -98,3 +98,6 @@ out/
 # kilo code
 .kilocodemodes
 .kilocode/
+
+#logs
+tmvlog.txt

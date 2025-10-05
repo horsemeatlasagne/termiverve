@@ -1,15 +1,16 @@
 #pragma once
+#include "constants.h"
+#include <map>
+#include <raylib.h>
 #include <string>
 #include <vector>
-#include <map>
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <windows.h>
-#include <windowsx.h>
 
 // Game object types
 enum GameObject
@@ -47,7 +48,7 @@ struct mobs
 };
 
 // Global variables for player state
-extern float playerX, playerY;
+extern Vector2 playerPos;
 extern float playerVelocityX, playerVelocityY;
 
 // Additional player-related globals
@@ -57,21 +58,21 @@ extern int lastAttackTime;
 
 // Global variables for game state
 extern bool isPaused;
-extern POINT lastMousePos;
+extern Vector2 lastMousePos;
 extern int lastMouseGridX;
 extern int lastMouseGridY;
-extern DWORD hoverStartTime;
+extern long hoverStartTime;
 extern bool showHoverInfo;
 
 // Backpack and inventory related globals
-extern HWND backpackWindow;
 extern bool isBackpackOpen;
-extern DWORD lastBackpackToggleTime;
-
-
+extern long lastBackpackToggleTime;
 // Global game map and mob management
 extern std::vector<std::vector<GameEntity>> gameMap;
+extern std::array<std::array<Rectangle, MAP_WIDTH>, MAP_HEIGHT> gameMapWorldPos;
+extern std::array<std::array<Color, MAP_WIDTH>, MAP_HEIGHT> gameMapColor;
 extern std::vector<mobs> allmobs;
+extern Vector2 PlayerWorldPos;
 
 // Global string arrays
 extern std::string DropsName[];
