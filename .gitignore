@@ -101,3 +101,7 @@ out/
 
 #logs
 tmvlog.txt
+
+#precompiled header
+pch.h.gch
+pch.h
