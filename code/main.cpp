@@ -8,10 +8,10 @@
 #define NOMINMAX
 #endif
 #include "constants.h"
-// #include "gamelogic.h"
 #include "globals.h"
-// #include "inputhandling.h"
+#include "inputhandling.h"
 // #include "inventory.h"
+#include "inputhandling.h"
 #include "main.h"
 #include <raylib.h>
 
@@ -268,75 +268,89 @@ void drawGame()
     // printf("Player X: %f, Player Y: %f\n", calculateWorldPos(playerPos).x,
     //        calculateWorldPos(playerPos).y);
     // Draw mobs
-    // for (int i = 0; i < allmobs.size(); i++)
-    // {
-    //     Color clr = {100, 100, 255}; // Mobs are blue
-    //     Rectangle mob = {allmobs[i].x * GRID_SIZE, allmobs[i].y * GRID_SIZE, GRID_SIZE,
-    //     GRID_SIZE}; DrawRectangleRec(mob, clr);
-    // }
+    for (int i = 0; i < allmobs.size(); i++)
+    {
+        Color clr = BLUE; // Mobs are blue
+        Rectangle mob = {calculateWorldPos(allmobs[i].x), calculateWorldPos(allmobs[i].y),
+                         GRID_SIZE, GRID_SIZE};
+        DrawRectangleRec(mob, clr);
+    }
 
     // // Display card
     // // ClearBackground({0, 0, 0});
 
-    // // Construct item names string
-    // std::vector<std::string> itemNames = {DropsName[LeftHand],    DropsName[RightHand],
-    //                                       DropsName[onPlayer[1]], DropsName[onPlayer[2]],
-    //                                       DropsName[onPlayer[3]], DropsName[Bar[1]],
-    //                                       DropsName[Bar[2]],      DropsName[Bar[3]],
-    //                                       DropsName[Bar[4]],      DropsName[Bar[5]]};
-    // // Prepare strings with consistent 4-space separation
-    // std::string itemNamesStr, modelStr;
-    // for (size_t i = 0; i < itemNames.size(); ++i)
-    // {
-    //     for (size_t j = 1; j <= itemNames[i].size() / 2; ++j)
-    //     {
-    //         modelStr += " ";
-    //     }
-    //     modelStr += ModelName[i];
+    // Construct item names string
+    std::vector<std::string> itemNames = {DropsName[LeftHand],    DropsName[RightHand],
+                                          DropsName[onPlayer[1]], DropsName[onPlayer[2]],
+                                          DropsName[onPlayer[3]], DropsName[Bar[1]],
+                                          DropsName[Bar[2]],      DropsName[Bar[3]],
+                                          DropsName[Bar[4]],      DropsName[Bar[5]]};
+    // Prepare strings with consistent 4-space separation
+    std::string itemNamesStr, modelStr;
+    for (size_t i = 0; i < itemNames.size(); ++i)
+    {
+        for (size_t j = 1; j <= itemNames[i].size() / 2; ++j)
+        {
+            modelStr += " ";
+        }
+        modelStr += ModelName[i];
 
-    //     itemNamesStr += itemNames[i];
-    //     if (i < itemNames.size() - 1)
-    //     {
-    //         itemNamesStr += "    "; // 4 spaces between items
-    //         for (size_t j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
-    //         {
-    //             modelStr += " ";
-    //         }
-    //     }
-    // }
-    // // Construct model labels to match item names
-    // // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
-    // // printf("%d %d\n", itemNamesStr.size(), modelStr.size());
-    // const char *text = itemNamesStr.c_str();
-    // const char *model = modelStr.c_str();
+        itemNamesStr += itemNames[i];
+        if (i < itemNames.size() - 1)
+        {
+            itemNamesStr += "    "; // 4 spaces between items
+            for (size_t j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
+            {
+                modelStr += " ";
+            }
+        }
+    }
+    // Construct model labels to match item names
+    // std::string modelStr = "L    R    F1   F2   F3   1    2    3    4    5";
+    // printf("%d %d\n", itemNamesStr.size(), modelStr.size());
+    const char *text = itemNamesStr.c_str();
+    const char *model = modelStr.c_str();
 
-    // // Calculate text widths to center both
-    // int textSizeWidth, modelTextSizeWidth; // Replaced GDI SIZE with int for raylib MeasureText
-    // textSizeWidth = MeasureText(text, 20);
-    // modelTextSizeWidth = MeasureText(model, 20);
+    // Calculate text widths to center both
+    int textSizeWidth, modelTextSizeWidth; // Replaced GDI SIZE with int for raylib MeasureText
+    textSizeWidth = MeasureText(text, 20);
+    modelTextSizeWidth = MeasureText(model, 20);
 
-    // // Position text at bottom center
-    // int centerX = WINDOW_WIDTH / 2;
-    // DrawText(text, centerX - textSizeWidth / 2, WINDOW_HEIGHT - 80, 20, {0, 0, 0});
-    // DrawText(model, centerX - modelTextSizeWidth / 2, WINDOW_HEIGHT - 60, 20, {0, 0, 0});
-    // // Display pause text if game is paused
-    // if (isPaused)
-    // {
-    //     DrawText("GAME PAUSED", centerX - 50, WINDOW_HEIGHT / 2, 20,
-    //              {255, 0, 0}); // Red text for pause
-    // }
+    // Position text at bottom center
+    int centerX = WINDOW_WIDTH / 2;
+    // Convert screen coordinates to world coordinates
+    Vector2 screenPosText = {(float)(centerX - textSizeWidth / 2), (float)(WINDOW_HEIGHT - 80)};
+    Vector2 screenPosModel = {(float)(centerX - modelTextSizeWidth / 2),
+                              (float)(WINDOW_HEIGHT - 60)};
 
+    // Convert to world coordinates
+    Vector2 worldPosText = GetScreenToWorld2D(screenPosText, camera);
+    Vector2 worldPosModel = GetScreenToWorld2D(screenPosModel, camera);
+
+    // Draw at world coordinates (but will appear at fixed screen positions)
+    DrawText(text, worldPosText.x, worldPosText.y, 20, BLACK);
+    DrawText(model, worldPosModel.x, worldPosModel.y, 20, BLACK);
+
+    // For pause text as well
+    if (isPaused)
+    {
+        Vector2 screenPosPause = {(float)(centerX - 50), (float)(WINDOW_HEIGHT / 2)};
+        Vector2 worldPosPause = GetScreenToWorld2D(screenPosPause, camera);
+        DrawText("GAME PAUSED", worldPosPause.x, worldPosPause.y, 20, RED);
+    }
+
+    // TODO: Add hover information
     // Display hover information if active
     // if (showHoverInfo)
     // {
     //     // Create tooltip-style bubble
     //     char hoverText[50];
     //     int isGround = (gameMap[lastMouseGridY][lastMouseGridX].type == GROUND) ? 1 : 0;
-    //     sprintf(hoverText, "X:%d, Y:%d, Ground:%d", lastMouseGridX, lastMouseGridY, isGround);
+    //     // sprintf(hoverText, "X:%d, Y:%d, Ground:%d", lastMouseGridX, lastMouseGridY, isGround);
 
     //     // Calculate text dimensions
-    //     SIZE textSize;
-    //     GetTextExtentPoint32A(hdc, hoverText, strlen(hoverText), &textSize);
+    //     Vector2 textSize;
+    //     textSize = MeasureTextEx(font, hoverText, 20, 0);
 
     //     // Calculate tooltip position (offset from cursor)
     //     int tooltipX = lastMousePos.x + 15;
@@ -364,9 +378,6 @@ void drawGame()
     //     SetBkMode(hdc, TRANSPARENT);     // Transparent background
     //     TextOutA(hdc, tooltipX + 5, tooltipY + 3, hoverText, strlen(hoverText));
 
-    //     // Clean up
-    //     DeleteObject(tooltipBrush);
-    //     DeleteObject(tooltipPen);
     // }
 }
 
@@ -417,7 +428,6 @@ int main()
     // DEBUG: Log initial positions
     printf("DEBUG INIT: Initial playerX=%.2f, playerY=%.2f\n", playerPos.x, playerPos.y);
 
-    Camera2D camera = {0};
     camera.offset = {WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
@@ -436,7 +446,6 @@ int main()
         BeginDrawing();
         ClearBackground(GRAY);
         BeginMode2D(camera);
-        // TODO: Research camera system
         // Only run game logic if not paused
         if (!isPaused)
         {
@@ -444,17 +453,19 @@ int main()
             // updateMouseHover();
 
             // Summon mobs
-            // SummonMobs();
-            // // Handle input and game logic
-            // handleInput();
-            // // Handle mouse
-            // handleMouseClick();
-            // // Handle mob deaths
-            // MobDeath();
+            SummonMobs();
+            // Handle input and game logic
+            handleInput();
+            // Handle mouse
+            handleMouseClick();
+            // Handle mob deaths
+            MobDeath();
             drawGame();
+            // handle zoom
+            handleZoom();
         }
         EndMode2D();
-        // >> may add redraw logic
+        // may add redraw logic
         // Sleep to control frame rate
         // Sleep(20);
         EndDrawing();

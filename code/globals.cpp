@@ -29,7 +29,7 @@ float playerVelocityY = 0.0f; // Player vertical velocity
 GameDrops *SelectedDrop;
 bool HaveSelected = false;
 int lastAttackTime;
-
+Camera2D camera = {0};
 // Name mapping
 std::map<GameObject, std::string> mp;
 

@@ -1,12 +1,12 @@
+#include "gamelogic.h"
+#include "constants.h"
+#include "globals.h"
+#include "inventory.h"
+#include "main.h"
 #include <cmath>
 #include <ctime>
-#include "constants.h"
-#include "gamelogic.h"
-#include "main.h"
-#include "inventory.h"
-#include "globals.h"
 
-short CheckPos(float X, float Y, bool isPlayer)
+short CheckPos(float X, float Y)
 {
     // First check if we're within map boundaries
     if (X < 0 || X > MAP_WIDTH - 1 || Y < 0 || Y > MAP_HEIGHT - 1)
@@ -22,7 +22,8 @@ short CheckPos(float X, float Y, bool isPlayer)
     int cornerY2 = floor(Y + offset);
     // if (isPlayer)
     //     printf("cornerX1: %d, cornerY1: %d, cornerX2: %d, cornerY2: %d\n, Ground status: %d\n",
-    //            cornerX1, cornerY1, cornerX2, cornerY2, gameMap[cornerY1][cornerX1].type == GROUND);
+    //            cornerX1, cornerY1, cornerX2, cornerY2, gameMap[cornerY1][cornerX1].type ==
+    //            GROUND);
     // Make sure all corners are within bounds
     if (cornerX2 >= MAP_WIDTH || cornerY2 >= MAP_HEIGHT)
         return -1;
@@ -83,7 +84,6 @@ void SummonMobs()
     }
 }
 
-
 bool isDestroyed(float x, float y)
 {
     // Check if the object at the given position is destroyed
@@ -119,16 +119,18 @@ void handleMouseClick()
     if (currentTime - lastAttackTime >= 200)
     { // Attack interval is 0.2 seconds
         // std::cout<<1;
-        POINT cursorPos;
-        GetCursorPos(&cursorPos);
-        ScreenToClient(GetForegroundWindow(), &cursorPos);
+        Vector2 cursorPos;
+        cursorPos = GetMousePosition();
+        // ScreenToClient(GetForegroundWindow(), &cursorPos);
 
-        float targetX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
-        float targetY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+        float targetX = (cursorPos.x - 400 + playerPos.x * GRID_SIZE) / GRID_SIZE;
+        float targetY = (cursorPos.y - 400 + playerPos.y * GRID_SIZE) / GRID_SIZE;
         // std::cout<< targetX << ' ' << targetY << ' ' << playerX << ' ' << playerY <<"\n";
 
-        if (targetX >= 0 && targetX < MAP_WIDTH && targetY >= 0 && targetY < MAP_HEIGHT &&
-            isPathClear(playerX, playerY, (int)targetX, (int)targetY) && KEY_DOWN(MOUSE_MOVED))
+        if (targetX >= 0 && targetX < MAP_WIDTH && targetY >= 0 && targetY < MAP_HEIGHT
+            && isPathClear(playerPos.x, playerPos.y, (int)targetX, (int)targetY)
+            && IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        // ~~ TODO: Check if mouse moved
         {
             attackTarget((int)targetX, (int)targetY); // std::cout<<"A\n";
             if (isDestroyed(targetX, targetY) && gameMap[(int)targetY][(int)targetX].type != GROUND)

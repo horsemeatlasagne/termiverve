@@ -2,3 +2,4 @@
 
 void handleInput();
 void updateMouseHover();
+void handleZoom();
