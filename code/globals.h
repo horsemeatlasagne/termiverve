@@ -72,7 +72,8 @@ extern std::vector<std::vector<GameEntity>> gameMap;
 extern std::array<std::array<Rectangle, MAP_WIDTH>, MAP_HEIGHT> gameMapWorldPos;
 extern std::array<std::array<Color, MAP_WIDTH>, MAP_HEIGHT> gameMapColor;
 extern std::vector<mobs> allmobs;
-extern Vector2 PlayerWorldPos;
+// extern Vector2 PlayerWorldPos;
+extern Camera2D camera;
 
 // Global string arrays
 extern std::string DropsName[];

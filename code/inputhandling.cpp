@@ -1,14 +1,15 @@
+#include "inputhandling.h"
+#include "constants.h"
+#include "gamelogic.h"
+#include "globals.h"
+#include "main.h"
 #include <cmath>
 #include <raylib.h>
-#include "constants.h"
-#include "inputhandling.h"
-#include "gamelogic.h"
-#include "inventory.h"
-#include "main.h"
-#include "globals.h"
+
 // Handle input
 void handleInput()
 {
+    float &playerX = playerPos.x, &playerY = playerPos.y; // >> logic unclear
     if (IsKeyDown(KEY_LEFT) || IsKeyDown('A'))
     {
         if (CheckPos(playerX - PLAYER_SPEED, playerY, true) > 0)
@@ -34,8 +35,8 @@ void handleInput()
     {
         if (CheckPos(playerX, playerY + PLAYER_SPEED, true) > 0)
             playerY += PLAYER_SPEED;
-        else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
-            playerY = floor(playerY);
+        // else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
+        // playerY = floor(playerY);
     }
     // L=0x4c,R=0x52,1~5=0x31~0x35,F1~F3=0x70~0x72
     if (IsKeyDown(KEY_L))
@@ -173,17 +174,17 @@ void handleInput()
     bool bKeyIsPressed = (IsKeyDown(KEY_B)) != 0;
     if (bKeyIsPressed)
     {
-        ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
-        // Sleep(200);
+        // TODO: Toggle Backpack Window
+        //  ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
+        //  Sleep(200);
     }
 }
 // Update mouse hover information
 void updateMouseHover()
 {
-    POINT cursorPos;
-    GetCursorPos(&cursorPos);
-    ScreenToClient(GetForegroundWindow(), &cursorPos);
-
+    Vector2 cursorPos;
+    cursorPos = GetMousePosition();
+    float &playerX = playerPos.x, &playerY = playerPos.y;
     // Convert screen coordinates to grid coordinates
     int gridX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
     int gridY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
@@ -196,10 +197,10 @@ void updateMouseHover()
         {
             lastMouseGridX = gridX;
             lastMouseGridY = gridY;
-            hoverStartTime = GetTickCount(); // Reset hover timer
+            hoverStartTime = GetTime(); // Reset hover timer
             showHoverInfo = false;
         }
-        else if (!showHoverInfo && GetTickCount() - hoverStartTime > 500) // 0.5 seconds
+        else if (!showHoverInfo && GetTime() - hoverStartTime > 500) // 0.5 seconds
         {
             // Mouse has been hovering over the same cell for 0.5 seconds
             showHoverInfo = true;
@@ -214,4 +215,21 @@ void updateMouseHover()
     }
 
     lastMousePos = cursorPos;
+}
+
+void handleZoom()
+{
+    // Zoom (the viewing distance will be changed according to the tentacle petals later)
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        float wheelMove = GetMouseWheelMove();
+        if (wheelMove != 0)
+        {
+            camera.zoom += wheelMove * 0.01f;
+            if (camera.zoom < 0.1f)
+                camera.zoom = 0.1f;
+            if (camera.zoom > 2.0f)
+                camera.zoom = 2.0f;
+        }
+    }
 }

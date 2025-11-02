@@ -105,3 +105,12 @@ tmvlog.txt
 #precompiled header
 pch.h.gch
 pch.h
+
+#claude
+CLAUDE.md
+
+#build files
+build/
+
+#specifications
+specs/
