@@ -457,9 +457,9 @@ int main()
             // Handle input and game logic
             handleInput();
             // Handle mouse
-            handleMouseClick();
+            // handleMouseClick();
             // Handle mob deaths
-            MobDeath();
+            // MobDeath();
             drawGame();
             // handle zoom
             handleZoom();
