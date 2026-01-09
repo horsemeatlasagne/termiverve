@@ -103,6 +103,8 @@ package-lock.json
 
 # AICODE cli
 .claude/
+.claude.md
+.serena/
 
 #logs
 tmvlog.txt
