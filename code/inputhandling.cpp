@@ -12,28 +12,28 @@ void handleInput()
     float &playerX = playerPos.x, &playerY = playerPos.y; // >> logic unclear
     if (IsKeyDown(KEY_LEFT) || IsKeyDown('A'))
     {
-        if (CheckPos(playerX - PLAYER_SPEED, playerY, true) > 0)
+        if (CheckPos(playerX - PLAYER_SPEED, playerY) > 0)
             playerX -= PLAYER_SPEED;
-        else if (CheckPos(playerX - PLAYER_SPEED, playerY, true) == 0) // excl. OOB
+        else if (CheckPos(playerX - PLAYER_SPEED, playerY) == 0) // excl. OOB
             playerX = floor(playerX);
     }
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown('D'))
     {
-        if (CheckPos(playerX + PLAYER_SPEED, playerY, true) > 0)
+        if (CheckPos(playerX + PLAYER_SPEED, playerY) > 0)
             playerX += PLAYER_SPEED;
-        else if (CheckPos(playerX + PLAYER_SPEED, playerY, true) == 0) // excl. OOB
+        else if (CheckPos(playerX + PLAYER_SPEED, playerY) == 0) // excl. OOB
             playerX = floor(playerX);
     }
     if (IsKeyDown(KEY_UP) || IsKeyDown('W'))
     {
-        if (CheckPos(playerX, playerY - PLAYER_SPEED, true) > 0)
+        if (CheckPos(playerX, playerY - PLAYER_SPEED) > 0)
             playerY -= PLAYER_SPEED;
-        else if (CheckPos(playerX, playerY - PLAYER_SPEED, true) == 0) // excl. OOB
+        else if (CheckPos(playerX, playerY - PLAYER_SPEED) == 0) // excl. OOB
             playerY = floor(playerY);
     }
     if (IsKeyDown(KEY_DOWN) || IsKeyDown('S'))
     {
-        if (CheckPos(playerX, playerY + PLAYER_SPEED, true) > 0)
+        if (CheckPos(playerX, playerY + PLAYER_SPEED) > 0)
             playerY += PLAYER_SPEED;
         // else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
         // playerY = floor(playerY);
