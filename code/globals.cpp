@@ -5,12 +5,6 @@
 #include <string>
 #include <vector>
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 // Globals
 
 std::string DropsName[] = {"Empty", "Wood", "Stone", "Leaf", "Bench", "Stick"};

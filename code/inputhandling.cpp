@@ -182,12 +182,11 @@ void handleInput()
 // Update mouse hover information
 void updateMouseHover()
 {
-    Vector2 cursorPos;
-    cursorPos = GetMousePosition();
+    Vector2 cursorPos = GetScreenToWorld2D(GetMousePosition(), camera);
     float &playerX = playerPos.x, &playerY = playerPos.y;
     // Convert screen coordinates to grid coordinates
-    int gridX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
-    int gridY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+    int gridX = cursorPos.x / GRID_SIZE;
+    int gridY = cursorPos.y / GRID_SIZE;
 
     // Check if mouse is within map bounds
     if (gridX >= 0 && gridX < MAP_WIDTH && gridY >= 0 && gridY < MAP_HEIGHT)
@@ -220,16 +219,14 @@ void updateMouseHover()
 void handleZoom()
 {
     // Zoom (the viewing distance will be changed according to the tentacle petals later)
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+
+    float wheelMove = GetMouseWheelMove();
+    if (wheelMove != 0)
     {
-        float wheelMove = GetMouseWheelMove();
-        if (wheelMove != 0)
-        {
-            camera.zoom += wheelMove * 0.01f;
-            if (camera.zoom < 0.1f)
-                camera.zoom = 0.1f;
-            if (camera.zoom > 2.0f)
-                camera.zoom = 2.0f;
-        }
+        camera.zoom += wheelMove * 0.01f;
+        if (camera.zoom < 0.1f)
+            camera.zoom = 0.1f;
+        if (camera.zoom > 2.0f)
+            camera.zoom = 2.0f;
     }
 }
