@@ -287,7 +287,8 @@ void drawGame()
     std::string itemNamesStr, modelStr;
     for (size_t i = 0; i < itemNames.size(); ++i)
     {
-        for (size_t j = 1; j <= itemNames[i].size() / 2; ++j)
+        size_t centerOffset = itemNames[i].size() / 2;
+        for (size_t j = 1; j <= centerOffset; ++j)
         {
             modelStr += " ";
         }
@@ -297,7 +298,9 @@ void drawGame()
         if (i < itemNames.size() - 1)
         {
             itemNamesStr += "    "; // 4 spaces between items
-            for (size_t j = 1; j <= (itemNames[i].size() + itemNames[i + 1].size()) / 2 + 4; ++j)
+            size_t currentHalf = itemNames[i].size() / 2, nextHalf = itemNames[i + 1].size() / 2,
+                   totalSpaces = currentHalf + nextHalf + 4;
+            for (size_t j = 1; j <= totalSpaces; ++j)
             {
                 modelStr += " ";
             }
