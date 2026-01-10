@@ -1,15 +1,10 @@
-#include <cstdio>
-#include <ctime>
-#include <map>
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 #include "constants.h"
 #include "globals.h"
 #include "inputhandling.h"
+#include <cstdio>
+#include <ctime>
+#include <map>
+
 // #include "inventory.h"
 #include "gamelogic.h"
 #include "inputhandling.h"
@@ -17,6 +12,7 @@
 #include "main.h"
 #include <raylib.h>
 
+// TODO: Rewrite Backpack Window Procedure
 // Backpack window procedure
 // LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // {
@@ -452,7 +448,7 @@ int main()
         if (!isPaused)
         {
             // Update mouse hover information
-            // updateMouseHover();
+            updateMouseHover();
 
             // Summon mobs
             SummonMobs();
