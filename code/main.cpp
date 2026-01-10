@@ -11,7 +11,9 @@
 #include "globals.h"
 #include "inputhandling.h"
 // #include "inventory.h"
+#include "gamelogic.h"
 #include "inputhandling.h"
+#include "inventory.h"
 #include "main.h"
 #include <raylib.h>
 
@@ -423,7 +425,7 @@ void drawGame()
 // Main entry point
 int main()
 {
-    freopen("tmvlog.txt", "w", stdout);
+    // freopen("tmvlog.txt", "w", stdout);
 
     // DEBUG: Log initial positions
     printf("DEBUG INIT: Initial playerX=%.2f, playerY=%.2f\n", playerPos.x, playerPos.y);
@@ -457,9 +459,9 @@ int main()
             // Handle input and game logic
             handleInput();
             // Handle mouse
-            // handleMouseClick();
+            handleMouseClick();
             // Handle mob deaths
-            // MobDeath();
+            MobDeath();
             drawGame();
             // handle zoom
             handleZoom();

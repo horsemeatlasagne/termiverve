@@ -91,6 +91,8 @@ bool isDestroyed(float x, float y)
 }
 void attackTarget(int x, int y)
 {
+    // printf("position:(%d,%d), type: %s, health: %d\n", x, y, mp[gameMap[y][x].type].c_str(),
+    //        gameMap[y][x].health);
     if (gameMap[y][x].type != GROUND)
     {
         gameMap[y][x].health -= attackPower;
@@ -118,20 +120,22 @@ void handleMouseClick()
     int currentTime = clock();
     if (currentTime - lastAttackTime >= 200)
     { // Attack interval is 0.2 seconds
-        // std::cout<<1;
-        Vector2 cursorPos;
+        Vector2 cursorPos, worldPos;
         cursorPos = GetMousePosition();
+        worldPos = GetScreenToWorld2D(cursorPos, camera);
         // ScreenToClient(GetForegroundWindow(), &cursorPos);
-
-        float targetX = (cursorPos.x - 400 + playerPos.x * GRID_SIZE) / GRID_SIZE;
-        float targetY = (cursorPos.y - 400 + playerPos.y * GRID_SIZE) / GRID_SIZE;
-        // std::cout<< targetX << ' ' << targetY << ' ' << playerX << ' ' << playerY <<"\n";
-
+        float targetX = worldPos.x / GRID_SIZE;
+        float targetY = worldPos.y / GRID_SIZE;
+        // Test correlation between worldPos and targetX, targetY
+        // if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        // {
+        //     printf("worldPos: (%f, %f)\n", worldPos.x / GRID_SIZE, worldPos.y / GRID_SIZE);
+        // }
         if (targetX >= 0 && targetX < MAP_WIDTH && targetY >= 0 && targetY < MAP_HEIGHT
             && isPathClear(playerPos.x, playerPos.y, (int)targetX, (int)targetY)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON))
-        // ~~ TODO: Check if mouse moved
         {
+            // printf("Attacking target at (%d, %d)\n", (int)targetX, (int)targetY);
             attackTarget((int)targetX, (int)targetY); // std::cout<<"A\n";
             if (isDestroyed(targetX, targetY) && gameMap[(int)targetY][(int)targetX].type != GROUND)
             {
