@@ -12,6 +12,13 @@
 #include "main.h"
 #include <raylib.h>
 
+// ============================================================
+// BACKPACK UI - DEFERRED TO FUTURE MILESTONE
+// Original Win32 implementation preserved for reference below
+// Keybind: 'B' (currently does nothing)
+// TODO: Rewrite using Raylib drawing primitives when needed
+// ============================================================
+
 // TODO: Rewrite Backpack Window Procedure
 // Backpack window procedure
 // LRESULT CALLBACK BackpackWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -339,47 +346,6 @@ void drawGame()
         Vector2 worldPosPause = GetScreenToWorld2D(screenPosPause, camera);
         DrawText("GAME PAUSED", worldPosPause.x, worldPosPause.y, 20, RED);
     }
-
-    // TODO: Add hover information
-    // Display hover information if active
-    // if (showHoverInfo)
-    // {
-    //     // Create tooltip-style bubble
-    //     char hoverText[50];
-    //     int isGround = (gameMap[lastMouseGridY][lastMouseGridX].type == GROUND) ? 1 : 0;
-    //     // sprintf(hoverText, "X:%d, Y:%d, Ground:%d", lastMouseGridX, lastMouseGridY, isGround);
-
-    //     // Calculate text dimensions
-    //     Vector2 textSize;
-    //     textSize = MeasureTextEx(font, hoverText, 20, 0);
-
-    //     // Calculate tooltip position (offset from cursor)
-    //     int tooltipX = lastMousePos.x + 15;
-    //     int tooltipY = lastMousePos.y - textSize.cy - 10;
-
-    //     // Ensure tooltip stays within window bounds
-    //     if (tooltipX + textSize.cx + 10 > WINDOW_WIDTH)
-    //         tooltipX = WINDOW_WIDTH - textSize.cx - 10;
-    //     if (tooltipY < 5)
-    //         tooltipY = lastMousePos.y + 15;
-
-    //     // Draw tooltip background
-    //     HBRUSH tooltipBrush = CreateSolidBrush(RGB(255, 255, 225));   // Light yellow background
-    //     HPEN tooltipPen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128)); // Gray border
-    //     SelectObject(hdc, tooltipBrush);
-    //     SelectObject(hdc, tooltipPen);
-
-    //     // Draw rounded rectangle for tooltip
-    //     RoundRect(hdc, tooltipX, tooltipY, tooltipX + textSize.cx + 10, tooltipY + textSize.cy +
-    //     6,
-    //               5, 5);
-
-    //     // Draw text
-    //     SetTextColor(hdc, RGB(0, 0, 0)); // Black text
-    //     SetBkMode(hdc, TRANSPARENT);     // Transparent background
-    //     TextOutA(hdc, tooltipX + 5, tooltipY + 3, hoverText, strlen(hoverText));
-
-    // }
 }
 
 // // Window procedure function
