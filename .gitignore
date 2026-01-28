@@ -126,3 +126,7 @@ devdocs/
 
 # assets
 assets/fonts/
+
+# kilo code
+.kilocodemodes
+.kilocode/
