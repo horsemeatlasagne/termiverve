@@ -1,43 +1,45 @@
-#include <cmath>
-#include "constants.h"
 #include "inputhandling.h"
+#include "constants.h"
 #include "gamelogic.h"
-#include "inventory.h"
-#include "main.h"
 #include "globals.h"
+#include "main.h"
+#include <cmath>
+#include <raylib.h>
+
 // Handle input
 void handleInput()
 {
-    if ((GetAsyncKeyState(VK_LEFT) & 0x8000) || (GetAsyncKeyState('A') & 0x8000))
+    float &playerX = playerPos.x, &playerY = playerPos.y; // >> logic unclear
+    if (IsKeyDown(KEY_LEFT) || IsKeyDown('A'))
     {
-        if (CheckPos(playerX - PLAYER_SPEED, playerY, true) > 0)
+        if (CheckPos(playerX - PLAYER_SPEED, playerY) > 0)
             playerX -= PLAYER_SPEED;
-        else if (CheckPos(playerX - PLAYER_SPEED, playerY, true) == 0) // excl. OOB
+        else if (CheckPos(playerX - PLAYER_SPEED, playerY) == 0) // excl. OOB
             playerX = floor(playerX);
     }
-    if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) || (GetAsyncKeyState('D') & 0x8000))
+    if (IsKeyDown(KEY_RIGHT) || IsKeyDown('D'))
     {
-        if (CheckPos(playerX + PLAYER_SPEED, playerY, true) > 0)
+        if (CheckPos(playerX + PLAYER_SPEED, playerY) > 0)
             playerX += PLAYER_SPEED;
-        else if (CheckPos(playerX + PLAYER_SPEED, playerY, true) == 0) // excl. OOB
+        else if (CheckPos(playerX + PLAYER_SPEED, playerY) == 0) // excl. OOB
             playerX = floor(playerX);
     }
-    if ((GetAsyncKeyState(VK_UP) & 0x8000) || (GetAsyncKeyState('W') & 0x8000))
+    if (IsKeyDown(KEY_UP) || IsKeyDown('W'))
     {
-        if (CheckPos(playerX, playerY - PLAYER_SPEED, true) > 0)
+        if (CheckPos(playerX, playerY - PLAYER_SPEED) > 0)
             playerY -= PLAYER_SPEED;
-        else if (CheckPos(playerX, playerY - PLAYER_SPEED, true) == 0) // excl. OOB
+        else if (CheckPos(playerX, playerY - PLAYER_SPEED) == 0) // excl. OOB
             playerY = floor(playerY);
     }
-    if ((GetAsyncKeyState(VK_DOWN) & 0x8000) || (GetAsyncKeyState('S') & 0x8000))
+    if (IsKeyDown(KEY_DOWN) || IsKeyDown('S'))
     {
-        if (CheckPos(playerX, playerY + PLAYER_SPEED, true) > 0)
+        if (CheckPos(playerX, playerY + PLAYER_SPEED) > 0)
             playerY += PLAYER_SPEED;
-        else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
-            playerY = floor(playerY);
+        // else if (CheckPos(playerX, playerY + PLAYER_SPEED, true) == 0) // excl. OOB
+        // playerY = floor(playerY);
     }
     // L=0x4c,R=0x52,1~5=0x31~0x35,F1~F3=0x70~0x72
-    if (GetAsyncKeyState(0x4c) & 0x8000)
+    if (IsKeyDown(KEY_L))
     {
         if (HaveSelected)
         {
@@ -50,7 +52,7 @@ void handleInput()
             SelectedDrop = &LeftHand;
         }
     }
-    if (GetAsyncKeyState(0x52) & 0x8000)
+    if (IsKeyDown(KEY_R))
     {
         if (HaveSelected)
         {
@@ -63,7 +65,7 @@ void handleInput()
             SelectedDrop = &RightHand;
         }
     }
-    if (GetAsyncKeyState(0x31) & 0x8000)
+    if (IsKeyDown(KEY_ONE))
     {
         if (HaveSelected)
         {
@@ -76,7 +78,7 @@ void handleInput()
             SelectedDrop = &Bar[1];
         }
     }
-    if (GetAsyncKeyState(0x32) & 0x8000)
+    if (IsKeyDown(KEY_TWO))
     {
         if (HaveSelected)
         {
@@ -89,7 +91,7 @@ void handleInput()
             SelectedDrop = &Bar[2];
         }
     }
-    if (GetAsyncKeyState(0x33) & 0x8000)
+    if (IsKeyDown(KEY_THREE))
     {
         if (HaveSelected)
         {
@@ -102,7 +104,7 @@ void handleInput()
             SelectedDrop = &Bar[3];
         }
     }
-    if (GetAsyncKeyState(0x34) & 0x8000)
+    if (IsKeyDown(KEY_FOUR))
     {
         if (HaveSelected)
         {
@@ -115,7 +117,7 @@ void handleInput()
             SelectedDrop = &Bar[4];
         }
     }
-    if (GetAsyncKeyState(0x35) & 0x8000)
+    if (IsKeyDown(KEY_FIVE))
     {
         if (HaveSelected)
         {
@@ -128,7 +130,7 @@ void handleInput()
             SelectedDrop = &Bar[5];
         }
     }
-    if (GetAsyncKeyState(0x70) & 0x8000)
+    if (IsKeyDown(KEY_F1))
     {
         if (HaveSelected)
         {
@@ -141,7 +143,7 @@ void handleInput()
             SelectedDrop = &onPlayer[1];
         }
     }
-    if (GetAsyncKeyState(0x71) & 0x8000)
+    if (IsKeyDown(KEY_F2))
     {
         if (HaveSelected)
         {
@@ -154,7 +156,7 @@ void handleInput()
             SelectedDrop = &onPlayer[2];
         }
     }
-    if (GetAsyncKeyState(0x72) & 0x8000)
+    if (IsKeyDown(KEY_F3))
     {
         if (HaveSelected)
         {
@@ -169,23 +171,22 @@ void handleInput()
     }
 
     // Improved backpack toggle with B key
-    bool bKeyIsPressed = (GetAsyncKeyState('B') & 0x8000) != 0;
+    bool bKeyIsPressed = (IsKeyDown(KEY_B)) != 0;
     if (bKeyIsPressed)
     {
-        ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
-        // Sleep(200);
+        // TODO: Toggle Backpack Window
+        //  ToggleBackpackWindow(GetForegroundWindow(), GetModuleHandle(NULL));
+        //  Sleep(200);
     }
 }
 // Update mouse hover information
 void updateMouseHover()
 {
-    POINT cursorPos;
-    GetCursorPos(&cursorPos);
-    ScreenToClient(GetForegroundWindow(), &cursorPos);
-
+    Vector2 cursorPos = GetScreenToWorld2D(GetMousePosition(), camera);
+    float &playerX = playerPos.x, &playerY = playerPos.y;
     // Convert screen coordinates to grid coordinates
-    int gridX = (cursorPos.x - 400 + playerX * GRID_SIZE) / GRID_SIZE;
-    int gridY = (cursorPos.y - 400 + playerY * GRID_SIZE) / GRID_SIZE;
+    int gridX = cursorPos.x / GRID_SIZE;
+    int gridY = cursorPos.y / GRID_SIZE;
 
     // Check if mouse is within map bounds
     if (gridX >= 0 && gridX < MAP_WIDTH && gridY >= 0 && gridY < MAP_HEIGHT)
@@ -195,10 +196,10 @@ void updateMouseHover()
         {
             lastMouseGridX = gridX;
             lastMouseGridY = gridY;
-            hoverStartTime = GetTickCount(); // Reset hover timer
+            hoverStartTime = GetTime(); // Reset hover timer
             showHoverInfo = false;
         }
-        else if (!showHoverInfo && GetTickCount() - hoverStartTime > 500) // 0.5 seconds
+        else if (!showHoverInfo && GetTime() - hoverStartTime > 500) // 0.5 seconds
         {
             // Mouse has been hovering over the same cell for 0.5 seconds
             showHoverInfo = true;
@@ -213,4 +214,19 @@ void updateMouseHover()
     }
 
     lastMousePos = cursorPos;
+}
+
+void handleZoom()
+{
+    // Zoom (the viewing distance will be changed according to the tentacle petals later)
+
+    float wheelMove = GetMouseWheelMove();
+    if (wheelMove != 0)
+    {
+        camera.zoom += wheelMove * 0.01f;
+        if (camera.zoom < 0.1f)
+            camera.zoom = 0.1f;
+        if (camera.zoom > 2.0f)
+            camera.zoom = 2.0f;
+    }
 }

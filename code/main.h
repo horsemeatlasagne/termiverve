@@ -1,12 +1,10 @@
 #pragma once
-#include <windows.h>
-#include <windowsx.h>
-
+#include <raylib.h>
 // Function declarations
 void generateRandomMap();
-void drawGame(HDC hdc);
+void drawGame();
 void handleInput();
 void updateMouseHover();
 void SummonMobs();
-void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance);
+// void ToggleBackpackWindow(HWND parentHwnd, HINSTANCE hInstance);
 bool isPathClear(float startX, float startY, float endX, float endY);

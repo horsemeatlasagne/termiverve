@@ -88,12 +88,44 @@ out/
 .next/
 .nuxt/
 .cache/
+obj/
 
 # Misc
 .lock-wscript
 .node_repl_history
 .yarn-integrity 
 *.code-workspace
+package.json
+package-lock.json
+# kilo code
+.kilocodemodes
+.kilocode/
+
+# AICODE cli
+.claude/
+.claude.md
+.serena/
+.codex
+AGENTS.md
+CLAUDE.md
+
+#logs
+tmvlog.txt
+
+#precompiled header
+pch.h.gch
+pch.h
+
+#build files
+build/
+.ninja_deps
+.ninja_log
+#specifications
+specs/
+devdocs/
+
+# assets
+assets/fonts/
 
 # kilo code
 .kilocodemodes
